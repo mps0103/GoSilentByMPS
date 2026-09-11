@@ -1,0 +1,24 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# Android
+android/local.properties
+android/app/build/
+android/build/
+android/.gradle/
+*.iml
+.idea/
+*.keystore
+*.jks
+
+# Metro
+.metro-health-check*
+
+# macOS
+.DS_Store
+
+# signing
+*.keystore
+*.jks
+keystore.properties

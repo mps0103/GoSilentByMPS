@@ -1,0 +1,46 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Install JS dependencies",
+      "type": "shell",
+      "command": "npm",
+      "args": ["install"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Metro",
+      "type": "shell",
+      "command": "npm",
+      "args": ["start"],
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Run on connected device",
+      "type": "shell",
+      "command": "npx",
+      "args": ["react-native", "run-android"],
+      "group": {"kind": "build", "isDefault": true},
+      "problemMatcher": []
+    },
+    {
+      "label": "Build standalone Debug APK",
+      "type": "shell",
+      "command": "./gradlew",
+      "args": ["assembleDebug"],
+      "options": {"cwd": "${workspaceFolder}/android"},
+      "windows": {"command": ".\\gradlew.bat", "args": ["assembleDebug"]},
+      "problemMatcher": []
+    },
+    {
+      "label": "Clean Android build",
+      "type": "shell",
+      "command": "./gradlew",
+      "args": ["clean"],
+      "options": {"cwd": "${workspaceFolder}/android"},
+      "windows": {"command": ".\\gradlew.bat", "args": ["clean"]},
+      "problemMatcher": []
+    }
+  ]
+}

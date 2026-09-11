@@ -1,0 +1,36 @@
+{
+  "name": "GoSilent",
+  "displayName": "Go Silent",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "start": "react-native start",
+    "build:apk": "cd android && ./gradlew assembleDebug",
+    "build:aab": "cd android && ./gradlew bundleRelease"
+  },
+  "dependencies": {
+    "react": "18.2.0",
+    "react-native": "0.74.5",
+    "react-native-google-mobile-ads": "14.7.2",
+    "react-native-linear-gradient": "2.8.3",
+    "react-native-svg": "15.3.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@babel/preset-env": "^7.24.0",
+    "@babel/runtime": "^7.24.0",
+    "@react-native-community/cli": "13.6.9",
+    "@react-native-community/cli-platform-android": "13.6.9",
+    "@react-native/babel-preset": "0.74.87",
+    "@react-native/eslint-config": "0.74.87",
+    "@react-native/metro-config": "0.74.87",
+    "@react-native/typescript-config": "0.74.87",
+    "@types/jest": "^30.0.0",
+    "@types/react": "^18.2.6",
+    "typescript": "5.0.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

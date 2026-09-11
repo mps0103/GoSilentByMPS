@@ -1,0 +1,40 @@
+# app-ads.txt — REPLACE THE LINE BELOW, THEN READ THE INSTRUCTIONS AT THE BOTTOM
+#
+# This file does NOT go inside your Android app. It must be hosted at the
+# ROOT of the same website domain you enter in Play Console as your
+# developer website — the exact same place you're hosting PRIVACY_POLICY.md.
+#
+# What it's for: proves to ad networks that you are the authorized seller
+# of the ad inventory shown inside "Go Silent by MPS", preventing fraud
+# where other apps claim to sell your ad space.
+
+google.com, ca-app-pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+
+# ---------------------------------------------------------------------------
+# HOW TO GET YOUR REAL LINE (replace ca-app-pub-XXXXXXXXXXXXXXXX above):
+#
+# 1. Log into https://admob.google.com
+# 2. Go to Apps → your app → App settings
+# 3. Find "App-ads.txt" — AdMob shows you the exact line for your account,
+#    already formatted correctly. Copy it exactly, including the
+#    "DIRECT, f08c47fec0942fa0" part at the end (that ID is Google's own
+#    certification ID, not yours — don't change it).
+#
+# HOW TO HOST THIS FILE (same domain as your privacy policy):
+#
+# If you're using GitHub Pages for your privacy policy (see
+# PLAY_STORE_LISTING.md), just add a second file at the repo root named
+# exactly "app-ads.txt" (no .md, no folder) next to your privacy policy's
+# README.md. GitHub Pages will serve it automatically at:
+#   https://YOUR-USERNAME.github.io/app-ads.txt
+#
+# IMPORTANT: it must be reachable at the DOMAIN ROOT, not a subfolder.
+# If your GitHub Pages URL is https://you.github.io/gosilent-privacy/,
+# that's a subfolder — app-ads.txt won't be found there. You either need
+# a custom domain, or a user/organization GitHub Pages site (not a
+# per-repo one) so the root domain itself serves the file.
+#
+# Then in Play Console: Store presence → Store settings → enter your
+# website URL. Google's crawler checks yourdomain.com/app-ads.txt
+# automatically within a few days — no separate submission needed.
+# ---------------------------------------------------------------------------
