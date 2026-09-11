@@ -36,7 +36,7 @@ go-silent-rn/
 │   └── App.tsx
 ├── index.js
 ├── package.json
-├── PRIVACY_POLICY.md
+├── docs/privacy.md      privacy policy (GitHub Pages source)
 ├── PLAY_STORE_LISTING.md
 ```
 
@@ -138,7 +138,7 @@ npx react-native run-android
 
 ## Publishing to Play Store
 
-See `PLAY_STORE_LISTING.md` and `PRIVACY_POLICY.md` — both updated for the ads-enabled version. Key addition vs. the ad-free native build: you must check **"Contains ads"** in the Play Console and fill out the Data Safety form's advertising sections truthfully.
+See `PLAY_STORE_LISTING.md` and `docs/privacy.md` — both updated for the ads-enabled version. Key addition vs. the ad-free native build: you must check **"Contains ads"** in the Play Console and fill out the Data Safety form's advertising sections truthfully.
 
 ## Troubleshooting
 

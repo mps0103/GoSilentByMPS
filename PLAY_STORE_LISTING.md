@@ -45,11 +45,13 @@ Check **"Contains ads"** in Play Console — this is mandatory and separately en
 
 ## Privacy policy hosting
 
-1. Create a free public GitHub repo, e.g. `gosilent-privacy`
-2. Upload `PRIVACY_POLICY.md` as `README.md`
-3. Settings → Pages → deploy from `main` branch, root
-4. URL becomes `https://YOUR-USERNAME.github.io/gosilent-privacy/`
-5. Paste into Play Console's Privacy Policy field
+The policy lives at `docs/privacy.md` in this repo — it is the single source of
+truth and is also what the app's About screen links to.
+
+1. Settings → Pages → deploy from `main` branch, `/docs` folder
+2. URL becomes `https://YOUR-USERNAME.github.io/YOUR-REPO/privacy`
+3. Set that exact URL as `PRIVACY_POLICY_URL` in `src/lib/appInfo.ts`
+4. Paste the same URL into Play Console's Privacy Policy field
 
 ## app-ads.txt (required once you have a live AdMob account)
 
@@ -109,4 +111,4 @@ Since Nov 2023, new Play Console accounts must run Closed Testing with 12+ teste
 | `src/lib/adUnits.ts` | `REAL_BANNER_AD_UNIT_ID` → your real banner unit ID |
 | `src/lib/appInfo.ts` | `PRIVACY_POLICY_URL` and `SUPPORT_EMAIL` → your real hosted URL and email |
 | `app-ads.txt` | `ca-app-pub-XXXXXXXXXXXXXXXX` → your real publisher ID, then host at your domain root |
-| `PRIVACY_POLICY.md` | Contact email, effective date |
+| `docs/privacy.md` | Contact email, effective date — keep in sync with the hosted page |
