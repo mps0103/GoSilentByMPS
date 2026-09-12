@@ -29,6 +29,25 @@ class SilenceModule(private val reactContext: ReactApplicationContext) :
 
     override fun getName() = "SilenceModule"
 
+    /**
+     * Exposes the real package version to JS so the About screen cannot drift
+     * from what was actually shipped. Read from PackageManager rather than a
+     * hardcoded constant - versionName/versionCode live in build.gradle.
+     */
+    override fun getConstants(): Map<String, Any?> {
+        val info = reactContext.packageManager.getPackageInfo(reactContext.packageName, 0)
+        val code = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            info.longVersionCode
+        } else {
+            @Suppress("DEPRECATION")
+            info.versionCode.toLong()
+        }
+        return mapOf(
+            "versionName" to (info.versionName ?: ""),
+            "versionCode" to code.toDouble()
+        )
+    }
+
     private var receiverRegistered = false
 
     private val receiver = object : BroadcastReceiver() {

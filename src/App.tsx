@@ -27,7 +27,9 @@ function withStartupTimeout<T>(
         resolve(fallback);
       }, STARTUP_TIMEOUT_MS);
 
-      task.finally(() => clearTimeout(timeoutId));
+      // .finally() returns a new promise - without a catch, a rejecting task
+      // surfaces as an unhandled rejection even though the race handles it.
+      task.finally(() => clearTimeout(timeoutId)).catch(() => {});
     }),
   ]);
 }

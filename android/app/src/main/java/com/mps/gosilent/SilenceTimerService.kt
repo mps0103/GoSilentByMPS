@@ -20,6 +20,7 @@ class SilenceTimerService : Service() {
         const val ACTION_TICK = "com.mps.gosilent.ACTION_TICK"
         const val ACTION_FINISHED = "com.mps.gosilent.ACTION_FINISHED"
         const val ACTION_CANCELLED = "com.mps.gosilent.ACTION_CANCELLED"
+        const val ACTION_RESUME = "com.mps.gosilent.ACTION_RESUME"
 
         const val EXTRA_DURATION_MS = "duration_ms"
         const val EXTRA_REMAINING = "remaining"
@@ -64,6 +65,13 @@ class SilenceTimerService : Service() {
                 endTimeMs = System.currentTimeMillis() + durationMs
                 startForeground(NOTIF_ID, buildNotification(totalSeconds))
                 applyMode()
+                if (modeApplied) {
+                    SilenceRestore.save(
+                        this, mode, endTimeMs, totalDurationMs,
+                        savedRingVolume, savedNotificationVolume, savedSystemVolume
+                    )
+                    SilenceRestore.scheduleAlarm(this, endTimeMs)
+                }
                 startCountdown(durationMs)
             }
             ACTION_CANCEL -> {
@@ -73,6 +81,10 @@ class SilenceTimerService : Service() {
                 stopForegroundCompat()
                 stopSelf()
             }
+
+            // Null or unknown action: either START_STICKY restarted us after
+            // the process was killed, or the boot receiver asked us to resume.
+            else -> resumeFromPersistedState()
         }
         return START_STICKY
     }
@@ -131,7 +143,11 @@ class SilenceTimerService : Service() {
     }
 
     private fun restoreRingingMode() {
-        if (!modeApplied) return
+        if (!modeApplied) {
+            // In-memory state is gone - the process was killed mid-session.
+            SilenceRestore.restoreFromDisk(this)
+            return
+        }
         val audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
         val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
@@ -156,6 +172,54 @@ class SilenceTimerService : Service() {
             }
         }
         modeApplied = false
+        SilenceRestore.clear(this)
+    }
+
+    /**
+     * Rebuilds a session from disk after the process was killed. Either the
+     * deadline has already passed - undo it now - or there is time left, and
+     * the countdown, notification and alarm all go back in place.
+     */
+    private fun resumeFromPersistedState() {
+        val session = SilenceRestore.load(this)
+        if (session == null) {
+            stopSelf()
+            return
+        }
+
+        val remaining = session.endAtMs - System.currentTimeMillis()
+        if (remaining <= 0L) {
+            SilenceRestore.restoreFromDisk(this)
+            broadcast(ACTION_FINISHED, 0L)
+            stopForegroundCompat()
+            stopSelf()
+            return
+        }
+
+        mode = session.mode
+        endTimeMs = session.endAtMs
+        totalDurationMs = if (session.totalMs > 0L) session.totalMs else remaining
+        totalSeconds = totalDurationMs / 1000L
+        savedRingVolume = session.ring
+        savedNotificationVolume = session.notification
+        savedSystemVolume = session.system
+        modeApplied = true
+
+        startForeground(NOTIF_ID, buildNotification(remaining / 1000L))
+
+        // A reboot clears the interruption filter - put it back while the
+        // session is still meant to be running.
+        if (mode == "dnd") {
+            val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            if (nm.isNotificationPolicyAccessGranted &&
+                nm.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_ALL
+            ) {
+                nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
+            }
+        }
+
+        SilenceRestore.scheduleAlarm(this, session.endAtMs)
+        startCountdown(remaining)
     }
 
     private fun broadcast(action: String, remaining: Long) {

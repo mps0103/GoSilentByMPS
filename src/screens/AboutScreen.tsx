@@ -4,6 +4,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import Svg, {Path} from 'react-native-svg';
 import {colors, gradients} from '../theme';
 import {
+  APP_BUILD,
   APP_FULL_NAME,
   APP_VERSION,
   DEVELOPER_NAME,
@@ -61,7 +62,9 @@ export default function AboutScreen({onBack}: Props) {
         </View>
 
         <Text style={styles.appName}>{APP_FULL_NAME}</Text>
-        <Text style={styles.version}>VERSION {APP_VERSION}</Text>
+        <Text style={styles.version}>
+          VERSION {APP_VERSION} (BUILD {APP_BUILD})
+        </Text>
 
         <View style={styles.divider} />
 

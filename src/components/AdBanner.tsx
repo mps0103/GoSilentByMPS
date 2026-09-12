@@ -21,24 +21,26 @@ export default function AdBanner() {
       let status = AdsConsentStatus.UNKNOWN;
 
       try {
-        const info = await AdsConsent.requestInfoUpdate();
-        status = info.status;
-        if (
-          info.isConsentFormAvailable &&
-          info.status === AdsConsentStatus.REQUIRED
-        ) {
-          await AdsConsent.showForm();
-          status = (await AdsConsent.getConsentInfo()).status;
-        }
+        // App startup (ensureAdsConsentAndInit) owns presenting the consent
+        // form. Here we only refresh and read the status, so the form can
+        // never be shown twice.
+        status = (await AdsConsent.requestInfoUpdate()).status;
       } catch {
         // Consent failures must not remove the ad slot.
       }
 
-      try {
-        const choices = await AdsConsent.getUserChoices();
-        if (alive) setPersonalised(Boolean(choices.selectPersonalisedAds));
-      } catch {
-        if (alive) setPersonalised(status === AdsConsentStatus.NOT_REQUIRED);
+      // Only regions that actually run the form store an IABTCF string.
+      // Elsewhere it is null and getUserChoices() throws parsing it, so ask
+      // only once consent has genuinely been obtained.
+      if (status === AdsConsentStatus.OBTAINED) {
+        try {
+          const choices = await AdsConsent.getUserChoices();
+          if (alive) setPersonalised(Boolean(choices.selectPersonalisedAds));
+        } catch {
+          if (alive) setPersonalised(false);
+        }
+      } else if (alive) {
+        setPersonalised(status === AdsConsentStatus.NOT_REQUIRED);
       }
 
       if (alive) setReady(true);

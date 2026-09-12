@@ -28,7 +28,16 @@ export async function ensureAdsConsentAndInit(): Promise<void> {
     // Non-fatal - if the consent check fails (e.g. no network on first
     // launch), fall through and initialize ads anyway rather than blocking
     // the app from starting.
-    console.warn('Ads consent flow did not complete:', e);
+    const message = e instanceof Error ? e.message : String(e);
+
+    if (message.includes('Publisher misconfiguration')) {
+      // No privacy message published for this app in AdMob. That is account
+      // configuration, not an app fault, so it should not raise a dev warning
+      // overlay on every launch - but it still belongs in the log.
+      console.log('Ads consent unavailable:', message);
+    } else {
+      console.warn('Ads consent flow did not complete:', e);
+    }
   }
 
   await MobileAds().initialize();

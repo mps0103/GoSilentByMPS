@@ -11,6 +11,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <application
         android:name=".MainApplication"
@@ -52,6 +54,21 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Countdown timer that restores phone ringer when finished" />
         </service>
+
+        <!--
+          Restores the ringer when the service cannot: the deadline alarm after
+          an OEM power manager kills us, a reboot mid-session, or an app update.
+          exported="true" is required to receive BOOT_COMPLETED.
+        -->
+        <receiver
+            android:name=".RestoreReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
 
     </application>
 </manifest>
