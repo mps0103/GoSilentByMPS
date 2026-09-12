@@ -1,23 +1,64 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import {BannerAd, BannerAdSize} from 'react-native-google-mobile-ads';
+import {
+  AdsConsent,
+  AdsConsentStatus,
+  BannerAd,
+  BannerAdSize,
+} from 'react-native-google-mobile-ads';
 import {BANNER_AD_UNIT_ID} from '../lib/adUnits';
 import {colors} from '../theme';
 
 export default function AdBanner() {
+  const [failed, setFailed] = useState(false);
+  const [personalised, setPersonalised] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      let status = AdsConsentStatus.UNKNOWN;
+
+      try {
+        const info = await AdsConsent.requestInfoUpdate();
+        status = info.status;
+        if (
+          info.isConsentFormAvailable &&
+          info.status === AdsConsentStatus.REQUIRED
+        ) {
+          await AdsConsent.showForm();
+          status = (await AdsConsent.getConsentInfo()).status;
+        }
+      } catch {
+        // Consent failures must not remove the ad slot.
+      }
+
+      try {
+        const choices = await AdsConsent.getUserChoices();
+        if (alive) setPersonalised(Boolean(choices.selectPersonalisedAds));
+      } catch {
+        if (alive) setPersonalised(status === AdsConsentStatus.NOT_REQUIRED);
+      }
+
+      if (alive) setReady(true);
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   return (
     <View style={styles.wrap}>
-      <BannerAd
-        unitId={BANNER_AD_UNIT_ID}
-        size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-        requestOptions={{requestNonPersonalizedAdsOnly: false}}
-        onAdLoaded={() => {
-          console.log('[AdBanner] loaded OK unitId=', BANNER_AD_UNIT_ID);
-        }}
-        onAdFailedToLoad={(error: any) => {
-          console.warn('[AdBanner] FAILED code=', error?.code, 'message=', error?.message);
-        }}
-      />
+      {ready && !failed && (
+        <BannerAd
+          unitId={BANNER_AD_UNIT_ID}
+          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+          requestOptions={{requestNonPersonalizedAdsOnly: !personalised}}
+          onAdFailedToLoad={() => setFailed(true)}
+        />
+      )}
     </View>
   );
 }
@@ -25,10 +66,9 @@ export default function AdBanner() {
 const styles = StyleSheet.create({
   wrap: {
     width: '100%',
+    height: 60,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.bg,
-    paddingVertical: 4,
-    minHeight: 60,
   },
 });
