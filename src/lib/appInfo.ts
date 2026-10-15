@@ -1,7 +1,7 @@
 import {NativeModules} from 'react-native';
 
 export const APP_NAME = 'Go Silent';
-export const APP_FULL_NAME = 'Go Silent by MPS';
+export const APP_FULL_NAME = 'Go Silent: Silent Mode Timer';
 export const DEVELOPER_NAME = 'MPS';
 
 // Version comes from the installed package (versionName/versionCode in
@@ -13,8 +13,8 @@ const nativeInfo = (NativeModules.SilenceModule ?? {}) as {
 	versionCode?: number;
 };
 
-export const APP_VERSION = nativeInfo.versionName || '1.0.1';
-export const APP_BUILD = nativeInfo.versionCode ?? 2;
+export const APP_VERSION = nativeInfo.versionName || '1.1.0';
+export const APP_BUILD = nativeInfo.versionCode ?? 3;
 
 export const PRIVACY_POLICY_URL =
 	'https://mps0103.github.io/GoSilentByMPS/privacy.html';

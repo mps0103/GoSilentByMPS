@@ -1,8 +1,9 @@
 import React, {useEffect, useRef} from 'react';
 import {Animated, Easing, StyleSheet, View} from 'react-native';
-import {colors} from '../theme';
+import {useTheme} from '../lib/ThemeContext';
 
 export default function PulseDot() {
+  const {theme} = useTheme();
   const dotAlpha = useRef(new Animated.Value(0.3)).current;
   const ringScale = useRef(new Animated.Value(0.8)).current;
   const ringAlpha = useRef(new Animated.Value(0.7)).current;
@@ -55,10 +56,13 @@ export default function PulseDot() {
       <Animated.View
         style={[
           styles.ring,
+          {backgroundColor: theme.colors.accent},
           {opacity: ringAlpha, transform: [{scale: ringScale}]},
         ]}
       />
-      <Animated.View style={[styles.dot, {opacity: dotAlpha}]} />
+      <Animated.View
+        style={[styles.dot, {opacity: dotAlpha, backgroundColor: theme.colors.accent}]}
+      />
     </View>
   );
 }
@@ -69,14 +73,12 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: colors.amber,
     position: 'absolute',
   },
   ring: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.amber,
     position: 'absolute',
   },
 });

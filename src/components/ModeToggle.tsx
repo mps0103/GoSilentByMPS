@@ -1,8 +1,9 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Animated, Pressable, StyleSheet, Text, View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, {Path} from 'react-native-svg';
-import {colors, gradients} from '../theme';
+import {useTheme, useThemedStyles} from '../lib/ThemeContext';
+import {Theme} from '../theme';
 
 type Mode = 'silent' | 'dnd';
 
@@ -28,100 +29,106 @@ function MoonIcon({color}: {color: string}) {
   );
 }
 
-function Tab({
-  selected,
-  label,
-  icon,
-  onPress,
-}: {
-  selected: boolean;
-  label: string;
-  icon: (color: string) => React.ReactNode;
-  onPress: () => void;
-}) {
-  const anim = useRef(new Animated.Value(selected ? 1 : 0)).current;
-  useEffect(() => {
-    Animated.timing(anim, {
-      toValue: selected ? 1 : 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [selected, anim]);
-
-  const textColor = selected ? colors.bg : colors.textLo;
-
-  return (
-    <Pressable style={styles.tab} onPress={onPress}>
-      <Animated.View style={[StyleSheet.absoluteFill, {opacity: anim}]}>
-        <LinearGradient
-          colors={gradients.amber as unknown as string[]}
-          start={{x: 0, y: 0}}
-          end={{x: 1, y: 1}}
-          style={styles.tabFill}
-        />
-      </Animated.View>
-      <View style={styles.tabContent}>
-        {icon(textColor)}
-        <Text style={[styles.tabLabel, {color: textColor}]}>{label}</Text>
-      </View>
-    </Pressable>
-  );
-}
-
 interface Props {
   mode: Mode;
   onChange: (mode: Mode) => void;
 }
 
+/** Two-way switch; the gradient pill springs across to the chosen side. */
 export default function ModeToggle({mode, onChange}: Props) {
+  const {theme} = useTheme();
+  const c = theme.colors;
+  const styles = useThemedStyles(makeStyles);
+  const [tabW, setTabW] = useState(0);
+  const pos = useRef(new Animated.Value(mode === 'silent' ? 0 : 1)).current;
+
+  useEffect(() => {
+    Animated.spring(pos, {
+      toValue: mode === 'silent' ? 0 : 1,
+      friction: 7,
+      tension: 90,
+      useNativeDriver: true,
+    }).start();
+  }, [mode, pos]);
+
+  const tabs: {key: Mode; label: string; icon: (color: string) => React.ReactNode}[] = [
+    {key: 'silent', label: 'SILENT', icon: col => <BellOffIcon color={col} />},
+    {key: 'dnd', label: 'DND', icon: col => <MoonIcon color={col} />},
+  ];
+
   return (
-    <View style={styles.wrap}>
-      <Tab
-        selected={mode === 'silent'}
-        label="SILENT"
-        icon={c => <BellOffIcon color={c} />}
-        onPress={() => onChange('silent')}
-      />
-      <Tab
-        selected={mode === 'dnd'}
-        label="DND"
-        icon={c => <MoonIcon color={c} />}
-        onPress={() => onChange('dnd')}
-      />
+    <View
+      style={styles.wrap}
+      onLayout={e => setTabW((e.nativeEvent.layout.width - 10) / 2)}>
+      {tabW > 0 && (
+        <Animated.View
+          style={[
+            styles.pill,
+            {
+              width: tabW,
+              transform: [
+                {translateX: pos.interpolate({inputRange: [0, 1], outputRange: [0, tabW]})},
+                {
+                  scaleX: pos.interpolate({
+                    inputRange: [0, 0.5, 1],
+                    outputRange: [1, 1.12, 1],
+                  }),
+                },
+              ],
+            },
+          ]}>
+          <LinearGradient
+            colors={theme.gradient}
+            start={{x: 0, y: 0}}
+            end={{x: 1, y: 1}}
+            style={StyleSheet.absoluteFillObject}
+          />
+        </Animated.View>
+      )}
+      {tabs.map(t => {
+        const selected = mode === t.key;
+        const color = selected ? c.onAccent : c.textLo;
+        return (
+          <Pressable key={t.key} style={styles.tab} onPress={() => onChange(t.key)}>
+            {t.icon(color)}
+            <Text style={[styles.tabLabel, {color}]}>{t.label}</Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: {
-    flexDirection: 'row',
-    width: '85%',
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.surface2,
-    padding: 4,
-  },
-  tab: {
-    flex: 1,
-    borderRadius: 23,
-    overflow: 'hidden',
-  },
-  tabFill: {
-    flex: 1,
-    borderRadius: 23,
-  },
-  tabContent: {
-    ...StyleSheet.absoluteFillObject,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  tabLabel: {
-    fontSize: 12,
-    letterSpacing: 3,
-    fontWeight: '500',
-  },
-});
+const makeStyles = (t: Theme) =>
+  StyleSheet.create({
+    wrap: {
+      flexDirection: 'row',
+      width: '85%',
+      height: 54,
+      borderRadius: 27,
+      backgroundColor: t.colors.surface,
+      borderWidth: 1,
+      borderColor: t.colors.surface2,
+      padding: 4,
+    },
+    pill: {
+      position: 'absolute',
+      top: 4,
+      bottom: 4,
+      left: 4,
+      borderRadius: 23,
+      overflow: 'hidden',
+    },
+    tab: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+    },
+    tabLabel: {
+      fontSize: 12,
+      letterSpacing: 3,
+      fontWeight: '500',
+    },
+  });

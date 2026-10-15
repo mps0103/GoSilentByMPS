@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {
+  Animated,
   FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -7,7 +8,8 @@ import {
   Text,
   View,
 } from 'react-native';
-import {colors} from '../theme';
+import {useThemedStyles} from '../lib/ThemeContext';
+import {Theme, alpha} from '../theme';
 
 const ITEM_HEIGHT = 56;
 const VISIBLE_PAD = ITEM_HEIGHT; // padding so first/last items can center
@@ -20,10 +22,12 @@ interface Props {
 }
 
 export default function DialPicker({value, onChange, max, label}: Props) {
+  const styles = useThemedStyles(makeStyles);
   const listRef = useRef<FlatList<number>>(null);
   const data = Array.from({length: max + 1}, (_, i) => i);
   const isUserScrolling = useRef(false);
   const hasMounted = useRef(false);
+  const scrollY = useRef(new Animated.Value(value * ITEM_HEIGHT)).current;
 
   useEffect(() => {
     if (!isUserScrolling.current) {
@@ -50,7 +54,7 @@ export default function DialPicker({value, onChange, max, label}: Props) {
       <Text style={styles.label}>{label}</Text>
       <View style={styles.pickerBox}>
         <View style={styles.highlightBand} pointerEvents="none" />
-        <FlatList
+        <Animated.FlatList
           ref={listRef}
           data={data}
           keyExtractor={item => String(item)}
@@ -59,6 +63,10 @@ export default function DialPicker({value, onChange, max, label}: Props) {
           decelerationRate="fast"
           onScrollBeginDrag={() => (isUserScrolling.current = true)}
           onMomentumScrollEnd={handleMomentumEnd}
+          onScroll={Animated.event([{nativeEvent: {contentOffset: {y: scrollY}}}], {
+            useNativeDriver: true,
+          })}
+          scrollEventThrottle={16}
           getItemLayout={(_, index) => ({
             length: ITEM_HEIGHT,
             offset: ITEM_HEIGHT * index,
@@ -66,17 +74,40 @@ export default function DialPicker({value, onChange, max, label}: Props) {
           })}
           contentContainerStyle={{paddingVertical: VISIBLE_PAD}}
           renderItem={({item}) => {
+            // Distance of this row from the centre band drives its look.
+            const inputRange = [
+              (item - 2) * ITEM_HEIGHT,
+              (item - 1) * ITEM_HEIGHT,
+              item * ITEM_HEIGHT,
+              (item + 1) * ITEM_HEIGHT,
+              (item + 2) * ITEM_HEIGHT,
+            ];
+            const scale = scrollY.interpolate({
+              inputRange,
+              outputRange: [0.6, 0.75, 1.15, 0.75, 0.6],
+              extrapolate: 'clamp',
+            });
+            const opacity = scrollY.interpolate({
+              inputRange,
+              outputRange: [0.15, 0.45, 1, 0.45, 0.15],
+              extrapolate: 'clamp',
+            });
+            const rotateX = scrollY.interpolate({
+              inputRange,
+              outputRange: ['60deg', '35deg', '0deg', '-35deg', '-60deg'],
+              extrapolate: 'clamp',
+            });
             const isActive = item === value;
             return (
-              <View style={styles.item}>
-                <Text
-                  style={[
-                    styles.itemText,
-                    isActive ? styles.itemTextActive : styles.itemTextInactive,
-                  ]}>
+              <Animated.View
+                style={[
+                  styles.item,
+                  {opacity, transform: [{perspective: 400}, {rotateX}, {scale}]},
+                ]}>
+                <Text style={[styles.itemText, isActive ? styles.itemTextActive : styles.itemTextInactive]}>
                   {String(item).padStart(2, '0')}
                 </Text>
-              </View>
+              </Animated.View>
             );
           }}
         />
@@ -85,47 +116,44 @@ export default function DialPicker({value, onChange, max, label}: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: {alignItems: 'center'},
-  label: {
-    color: colors.textLo,
-    fontSize: 9,
-    letterSpacing: 3,
-    marginBottom: 8,
-  },
-  pickerBox: {
-    width: 96,
-    height: 168,
-    overflow: 'hidden',
-  },
-  highlightBand: {
-    position: 'absolute',
-    top: 56,
-    left: 0,
-    right: 0,
-    height: ITEM_HEIGHT,
-    backgroundColor: 'rgba(251,191,36,0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(251,191,36,0.35)',
-    borderRadius: 8,
-    zIndex: 1,
-  },
-  item: {
-    height: ITEM_HEIGHT,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  itemText: {
-    fontWeight: '200',
-    fontVariant: ['tabular-nums'],
-  },
-  itemTextActive: {
-    color: colors.amber,
-    fontSize: 32,
-  },
-  itemTextInactive: {
-    color: colors.textLo,
-    fontSize: 24,
-    opacity: 0.6,
-  },
-});
+const makeStyles = (t: Theme) => {
+  const c = t.colors;
+  return StyleSheet.create({
+    wrap: {alignItems: 'center'},
+    label: {
+      color: c.textLo,
+      fontSize: 9,
+      letterSpacing: 3,
+      marginBottom: 8,
+    },
+    pickerBox: {
+      width: 96,
+      height: 168,
+      overflow: 'hidden',
+    },
+    highlightBand: {
+      position: 'absolute',
+      top: 56,
+      left: 0,
+      right: 0,
+      height: ITEM_HEIGHT,
+      backgroundColor: alpha(c.accent, 0.12),
+      borderWidth: 1,
+      borderColor: alpha(c.accent, 0.35),
+      borderRadius: 8,
+      zIndex: 1,
+    },
+    item: {
+      height: ITEM_HEIGHT,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    itemText: {
+      fontWeight: '200',
+      fontVariant: ['tabular-nums'],
+      fontSize: 30,
+    },
+    itemTextActive: {color: c.accent},
+    itemTextInactive: {color: c.textLo},
+  });
+};

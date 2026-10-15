@@ -6,7 +6,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.Arguments
@@ -16,7 +18,9 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.mps.gosilent.LauncherIcon
 import com.mps.gosilent.MainActivity
+import com.mps.gosilent.SilenceRestore
 import com.mps.gosilent.SilenceTimerService
 
 /**
@@ -44,7 +48,9 @@ class SilenceModule(private val reactContext: ReactApplicationContext) :
         }
         return mapOf(
             "versionName" to (info.versionName ?: ""),
-            "versionCode" to code.toDouble()
+            "versionCode" to code.toDouble(),
+            // Read synchronously at startup so the saved theme paints the first frame.
+            "themeId" to prefs().getString(LauncherIcon.KEY_THEME, null)
         )
     }
 
@@ -110,8 +116,28 @@ class SilenceModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun startTimer(hours: Int, minutes: Int, mode: String, promise: Promise) {
+        startForDuration((hours * 3600L + minutes * 60L) * 1000L, mode, promise)
+    }
+
+    /** "Silent until 7:30" - JS works out the exact milliseconds to the target time. */
+    @ReactMethod
+    fun startTimerMs(durationMs: Double, mode: String, promise: Promise) {
+        startForDuration(durationMs.toLong(), mode, promise)
+    }
+
+    /** Persisted outside the session prefs, which are wiped when a session ends. */
+    @ReactMethod
+    fun setTheme(themeId: String) {
+        prefs().edit().putString(LauncherIcon.KEY_THEME, themeId).apply()
+    }
+
+    private fun prefs() =
+        reactContext.getSharedPreferences(LauncherIcon.PREFS, Context.MODE_PRIVATE)
+
+    private val KEY_BATTERY_HINT_DONE = "battery_hint_done"
+
+    private fun startForDuration(totalMs: Long, mode: String, promise: Promise) {
         ensureReceiverRegistered()
-        val totalMs = (hours * 3600L + minutes * 60L) * 1000L
         if (totalMs <= 0L) {
             promise.reject("INVALID_DURATION", "Duration must be greater than zero")
             return
@@ -153,7 +179,52 @@ class SilenceModule(private val reactContext: ReactApplicationContext) :
         val result = Arguments.createMap()
         result.putBoolean("notificationGranted", notifGranted)
         result.putBoolean("dndGranted", nm.isNotificationPolicyAccessGranted)
+        result.putBoolean("exactAlarmGranted", SilenceRestore.canScheduleExact(reactContext))
+        val pm = reactContext.getSystemService(Context.POWER_SERVICE) as PowerManager
+        // Stock Android / Samsung "Unrestricted" shows up here. vivo, OPPO and
+        // Xiaomi keep their own "allow background" switch that no API exposes,
+        // so once the user has been sent to that page we take their word for it.
+        result.putBoolean(
+            "batteryUnrestricted",
+            pm.isIgnoringBatteryOptimizations(reactContext.packageName) ||
+                prefs().getBoolean(KEY_BATTERY_HINT_DONE, false)
+        )
         promise.resolve(result)
+    }
+
+    /** User opened the battery page from our hint, or dismissed the hint. */
+    @ReactMethod
+    fun markBatteryHintDone() {
+        prefs().edit().putBoolean(KEY_BATTERY_HINT_DONE, true).apply()
+    }
+
+    /**
+     * Opens this app's system info page, where Battery -> Unrestricted stops
+     * aggressive OEM cleaners from killing the timer. We deliberately avoid
+     * REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, which Play restricts.
+     */
+    @ReactMethod
+    fun openBatterySettings() {
+        val intent = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.parse("package:${reactContext.packageName}")
+        ).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        reactContext.startActivity(intent)
+    }
+
+    /** Android 12+ "Alarms & reminders" page, so sound comes back exactly on time. */
+    @ReactMethod
+    fun openExactAlarmSettings() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        val intent = Intent(
+            Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+            Uri.parse("package:${reactContext.packageName}")
+        ).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        reactContext.startActivity(intent)
     }
 
     @ReactMethod

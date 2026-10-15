@@ -18,42 +18,63 @@ class RestoreReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent?) {
         when (intent?.action) {
-            SilenceRestore.ACTION_RESTORE -> restoreNow(context)
+            SilenceRestore.ACTION_RESTORE -> onAlarm(context)
 
             Intent.ACTION_BOOT_COMPLETED,
             Intent.ACTION_MY_PACKAGE_REPLACED -> resumeOrRestore(context)
         }
     }
 
-    private fun restoreNow(context: Context) {
-        if (!SilenceRestore.restoreFromDisk(context)) return
+    companion object {
 
-        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        nm.cancel(SilenceTimerService.NOTIF_ID)
-        context.stopService(Intent(context, SilenceTimerService::class.java))
-
-        context.sendBroadcast(
-            Intent(SilenceTimerService.ACTION_FINISHED).apply {
-                setPackage(context.packageName)
-                putExtra(SilenceTimerService.EXTRA_REMAINING, 0L)
+        /**
+         * Either the deadline alarm or an early checkpoint (see
+         * SilenceRestore.CHECKPOINT_MS). A checkpoint just re-arms the next one.
+         */
+        private fun onAlarm(context: Context) {
+            val session = SilenceRestore.load(context) ?: return
+            if (System.currentTimeMillis() < session.endAtMs) {
+                SilenceRestore.scheduleAlarm(context, session.endAtMs)
+                return
             }
-        )
-    }
-
-    private fun resumeOrRestore(context: Context) {
-        val session = SilenceRestore.load(context) ?: return
-
-        if (System.currentTimeMillis() >= session.endAtMs) {
-            // The deadline passed while we were down - undo it immediately.
             restoreNow(context)
-            return
         }
 
-        // Time left: bring the timer back rather than leaving the phone silent
-        // with nothing counting down.
-        val resume = Intent(context, SilenceTimerService::class.java).apply {
-            action = SilenceTimerService.ACTION_RESUME
+        private fun restoreNow(context: Context) {
+            if (!SilenceRestore.restoreFromDisk(context)) return
+
+            val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            nm.cancel(SilenceTimerService.NOTIF_ID)
+            context.stopService(Intent(context, SilenceTimerService::class.java))
+
+            context.sendBroadcast(
+                Intent(SilenceTimerService.ACTION_FINISHED).apply {
+                    setPackage(context.packageName)
+                    putExtra(SilenceTimerService.EXTRA_REMAINING, 0L)
+                }
+            )
         }
-        ContextCompat.startForegroundService(context, resume)
+
+        /**
+         * Undoes an expired session or brings a live one back. Called on boot,
+         * after an app update, and on every app launch - the last one covers a
+         * force stop ("Clear all" on some phones), which cancels our alarm.
+         */
+        fun resumeOrRestore(context: Context) {
+            val session = SilenceRestore.load(context) ?: return
+
+            if (System.currentTimeMillis() >= session.endAtMs) {
+                // The deadline passed while we were down - undo it immediately.
+                restoreNow(context)
+                return
+            }
+
+            // Time left: bring the timer back rather than leaving the phone silent
+            // with nothing counting down.
+            val resume = Intent(context, SilenceTimerService::class.java).apply {
+                action = SilenceTimerService.ACTION_RESUME
+            }
+            ContextCompat.startForegroundService(context, resume)
+        }
     }
 }

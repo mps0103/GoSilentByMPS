@@ -29,8 +29,17 @@ object SilenceRestore {
     private const val KEY_RING = "saved_ring"
     private const val KEY_NOTIFICATION = "saved_notification"
     private const val KEY_SYSTEM = "saved_system"
+    private const val KEY_RINGER_MODE = "saved_ringer_mode"
 
     private const val ALARM_REQUEST_CODE = 7001
+
+    /**
+     * Without exact-alarm access the deadline alarm is inexact, and Android may
+     * defer an inexact alarm by up to ~75% of the time until it is due - hours,
+     * on a long session. So instead of one far-off alarm we check in at most
+     * this often, which keeps any lateness to minutes.
+     */
+    private const val CHECKPOINT_MS = 10 * 60 * 1000L
 
     data class Session(
         val mode: String,
@@ -38,7 +47,8 @@ object SilenceRestore {
         val totalMs: Long,
         val ring: Int,
         val notification: Int,
-        val system: Int
+        val system: Int,
+        val ringerMode: Int = -1
     )
 
     private fun prefs(context: Context): SharedPreferences =
@@ -51,7 +61,8 @@ object SilenceRestore {
         totalMs: Long,
         ring: Int,
         notification: Int,
-        system: Int
+        system: Int,
+        ringerMode: Int
     ) {
         prefs(context).edit()
             .putBoolean(KEY_ACTIVE, true)
@@ -61,6 +72,7 @@ object SilenceRestore {
             .putInt(KEY_RING, ring)
             .putInt(KEY_NOTIFICATION, notification)
             .putInt(KEY_SYSTEM, system)
+            .putInt(KEY_RINGER_MODE, ringerMode)
             .commit()
     }
 
@@ -73,7 +85,8 @@ object SilenceRestore {
             totalMs = p.getLong(KEY_TOTAL, 0L),
             ring = p.getInt(KEY_RING, -1),
             notification = p.getInt(KEY_NOTIFICATION, -1),
-            system = p.getInt(KEY_SYSTEM, -1)
+            system = p.getInt(KEY_SYSTEM, -1),
+            ringerMode = p.getInt(KEY_RINGER_MODE, -1)
         )
     }
 
@@ -104,6 +117,16 @@ object SilenceRestore {
             }
             else -> {
                 val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                // Put the ringer mode back first. Zeroing the ring volume can
+                // leave the phone in vibrate/silent, and some OEMs do not leave
+                // that mode just because the volume comes back up.
+                try {
+                    if (session.ringerMode >= 0) {
+                        am.ringerMode = session.ringerMode
+                    }
+                } catch (_: SecurityException) {
+                    // Leaving silent mode needs DND access on Android 7+.
+                }
                 try {
                     if (session.ring >= 0) {
                         am.setStreamVolume(AudioManager.STREAM_RING, session.ring, 0)
@@ -121,23 +144,30 @@ object SilenceRestore {
         }
     }
 
+    fun canScheduleExact(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return true
+        val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        return am.canScheduleExactAlarms()
+    }
+
     /**
-     * Wakes the device at the deadline even if our process is gone. Falls back to
-     * an inexact wakeup when the user has not granted exact-alarm access - a few
-     * minutes late beats staying silent forever.
+     * Wakes the device at the deadline even if our process is gone. Without
+     * exact-alarm access (denied by default on Android 14) it schedules an
+     * inexact checkpoint no more than CHECKPOINT_MS away instead; RestoreReceiver
+     * re-arms it until the deadline has passed.
      */
     fun scheduleAlarm(context: Context, endAtMs: Long) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val pi = alarmIntent(context)
+        val checkpoint = minOf(endAtMs, System.currentTimeMillis() + CHECKPOINT_MS)
         try {
-            val canExact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || am.canScheduleExactAlarms()
-            if (canExact) {
+            if (canScheduleExact(context)) {
                 am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, endAtMs, pi)
             } else {
-                am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, endAtMs, pi)
+                am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, checkpoint, pi)
             }
         } catch (_: SecurityException) {
-            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, endAtMs, pi)
+            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, checkpoint, pi)
         }
     }
 

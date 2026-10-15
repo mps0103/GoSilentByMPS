@@ -40,5 +40,22 @@ export async function ensureAdsConsentAndInit(): Promise<void> {
     }
   }
 
+  // Devices listed here get Google test ads even from the real ad unit ids,
+  // so the developer can see every placement without risking invalid clicks.
+  // It has no effect on anyone else's phone. Add more ids from the
+  // "Use RequestConfiguration.Builder().setTestDeviceIds" line in logcat.
+  try {
+    await MobileAds().setRequestConfiguration({
+      testDeviceIdentifiers: TEST_DEVICE_IDS,
+    });
+  } catch {
+    // Non-fatal - ads still work, just without test mode on this device.
+  }
+
   await MobileAds().initialize();
 }
+
+const TEST_DEVICE_IDS = [
+  'EMULATOR',
+  '870DA1FD1E3A5955308F2AFBED79F0B8', // developer's phone
+];

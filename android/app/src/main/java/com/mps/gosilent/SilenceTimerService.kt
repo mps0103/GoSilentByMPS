@@ -43,6 +43,7 @@ class SilenceTimerService : Service() {
     private var savedRingVolume = -1
     private var savedNotificationVolume = -1
     private var savedSystemVolume = -1
+    private var savedRingerMode = -1
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -55,6 +56,11 @@ class SilenceTimerService : Service() {
         when (intent?.action) {
             ACTION_START -> {
                 val durationMs = intent.getLongExtra(EXTRA_DURATION_MS, 0L)
+                // Undo any session still running first. Otherwise applyMode()
+                // would save the already-zeroed volumes as the "original" ones,
+                // and the phone would be restored to silent.
+                countDown?.cancel()
+                restoreRingingMode()
                 mode = intent.getStringExtra(EXTRA_MODE) ?: "silent"
                 if (durationMs <= 0L) {
                     stopSelf()
@@ -68,7 +74,8 @@ class SilenceTimerService : Service() {
                 if (modeApplied) {
                     SilenceRestore.save(
                         this, mode, endTimeMs, totalDurationMs,
-                        savedRingVolume, savedNotificationVolume, savedSystemVolume
+                        savedRingVolume, savedNotificationVolume, savedSystemVolume,
+                        savedRingerMode
                     )
                     SilenceRestore.scheduleAlarm(this, endTimeMs)
                 }
@@ -87,6 +94,18 @@ class SilenceTimerService : Service() {
             else -> resumeFromPersistedState()
         }
         return START_STICKY
+    }
+
+    /**
+     * Swiped out of recents. The foreground service keeps running, but some
+     * OEM cleaners follow this up by killing the process - make sure the
+     * deadline alarm is armed so the ringer still comes back without us.
+     */
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        if (modeApplied && endTimeMs > 0L) {
+            SilenceRestore.scheduleAlarm(this, endTimeMs)
+        }
     }
 
     override fun onDestroy() {
@@ -120,6 +139,7 @@ class SilenceTimerService : Service() {
         when (mode) {
             "silent" -> {
                 try {
+                    savedRingerMode = audioManager.ringerMode
                     savedRingVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING)
                     savedNotificationVolume = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION)
                     savedSystemVolume = audioManager.getStreamVolume(AudioManager.STREAM_SYSTEM)
@@ -148,29 +168,14 @@ class SilenceTimerService : Service() {
             SilenceRestore.restoreFromDisk(this)
             return
         }
-        val audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
-        val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-
-        when (mode) {
-            "silent" -> {
-                try {
-                    if (savedRingVolume >= 0) {
-                        audioManager.setStreamVolume(AudioManager.STREAM_RING, savedRingVolume, 0)
-                    }
-                    if (savedNotificationVolume >= 0) {
-                        audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, savedNotificationVolume, 0)
-                    }
-                    if (savedSystemVolume >= 0) {
-                        audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, savedSystemVolume, 0)
-                    }
-                } catch (_: SecurityException) { }
-            }
-            "dnd" -> {
-                if (nm.isNotificationPolicyAccessGranted) {
-                    nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
-                }
-            }
-        }
+        SilenceRestore.applyRestore(
+            this,
+            SilenceRestore.Session(
+                mode, endTimeMs, totalDurationMs,
+                savedRingVolume, savedNotificationVolume, savedSystemVolume,
+                savedRingerMode
+            )
+        )
         modeApplied = false
         SilenceRestore.clear(this)
     }
@@ -181,6 +186,10 @@ class SilenceTimerService : Service() {
      * the countdown, notification and alarm all go back in place.
      */
     private fun resumeFromPersistedState() {
+        // Already counting down in this process (e.g. the app was just opened
+        // while the service survived) - nothing to rebuild.
+        if (modeApplied && countDown != null) return
+
         val session = SilenceRestore.load(this)
         if (session == null) {
             stopSelf()
@@ -203,6 +212,7 @@ class SilenceTimerService : Service() {
         savedRingVolume = session.ring
         savedNotificationVolume = session.notification
         savedSystemVolume = session.system
+        savedRingerMode = session.ringerMode
         modeApplied = true
 
         startForeground(NOTIF_ID, buildNotification(remaining / 1000L))

@@ -7,12 +7,21 @@ import {
   BannerAdSize,
 } from 'react-native-google-mobile-ads';
 import {BANNER_AD_UNIT_ID} from '../lib/adUnits';
-import {colors} from '../theme';
+import {useTheme} from '../lib/ThemeContext';
 
 export default function AdBanner() {
+  const {theme} = useTheme();
   const [failed, setFailed] = useState(false);
   const [personalised, setPersonalised] = useState(false);
   const [ready, setReady] = useState(false);
+
+  // No fill is common (new ad units, low inventory) - try again later
+  // instead of leaving the slot empty until the next launch.
+  useEffect(() => {
+    if (!failed) return;
+    const t = setTimeout(() => setFailed(false), 45000);
+    return () => clearTimeout(t);
+  }, [failed]);
 
   useEffect(() => {
     let alive = true;
@@ -52,7 +61,7 @@ export default function AdBanner() {
   }, []);
 
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, {backgroundColor: theme.colors.bg}]}>
       {ready && !failed && (
         <BannerAd
           unitId={BANNER_AD_UNIT_ID}
@@ -71,6 +80,5 @@ const styles = StyleSheet.create({
     height: 60,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.bg,
   },
 });

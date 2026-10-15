@@ -1,29 +1,54 @@
-# Google Play Store Listing — Go Silent (by MPS)
+# Google Play Store Listing — Go Silent: Silent Mode Timer
 
 ## Basic info
 
-**App name**: `Go Silent by MPS`
+**App name (Play title, 30 max)**: `Go Silent: Silent Mode Timer` (28)
 
-**Short description**: `Auto-silence your phone for a chosen time, then auto-restore the ringer.`
+Name under the launcher icon is just `Go Silent` (`app_name` in
+`android/app/src/main/res/values/strings.xml`) so it never gets truncated.
 
-**Full description**:
+**Short description (80 max)**:
+`Silent or Do Not Disturb for a set time, then your phone rings again by itself.` (79)
+
+**Full description (4000 max)**:
 ```
-Go Silent puts your phone into Silent or Do Not Disturb mode for a duration you choose, then automatically switches it back to ringing when the timer ends.
+Go Silent is a silent mode timer: put your phone on Silent or Do Not Disturb for as long as you need, and it switches your ringer back on automatically when the time is up. No more missed calls because you forgot to unmute after a meeting.
 
-No more forgetting to turn the sound back on after a meeting, a movie, a class, a workout, a meditation, a nap, or bedtime.
+TWO WAYS TO SET THE TIMER
+• For how long – spin the dials and silence your phone for 10 minutes, 1 hour or up to 23 hours 59 minutes
+• Until a time – tap the clock and choose when sound comes back, like "silent until 7:30 AM"
 
-KEY FEATURES
-• Pick any duration from 1 minute up to 23 hours 59 minutes
-• Silent mode or Do Not Disturb mode
-• Live countdown ring with remaining time
-• Cancel anytime — in-app or from the notification
-• Keeps running when minimized or screen is locked
-• Auto-restores ringing when finished, even if the app was force-closed
+PERFECT FOR
+Meetings, class, lectures, cinema, prayer, worship, exams, interviews, naps, sleep, meditation, the gym and anywhere your phone should stay quiet for a while.
 
-This app is ad-supported and shows a small banner ad.
+SILENT MODE OR DO NOT DISTURB
+• Silent mode mutes your ringtone and notification sounds
+• Do Not Disturb mode uses Android's DND so priority contacts can still reach you
+• Your exact ringer volume and mode are restored when the timer ends – auto unmute, every time
+
+RELIABLE, EVEN IN THE BACKGROUND
+• Keeps counting when you lock the screen or switch apps
+• Survives clearing recent apps and phone restarts
+• Exact alarms bring the sound back right on time
+• Stop early from the app or straight from the notification
+
+BEAUTIFUL AND SIMPLE
+• Live countdown ring that shows exactly when your phone rings again
+• Six colour themes – Ember, Ocean, Forest, Rose, Aurora and Daylight – and the app icon changes to match
+• Smooth animations, one tap to start
+
+PRIVATE BY DESIGN
+No account, no sign-up. Your timers and settings never leave your phone.
+
+Go Silent is free and supported by ads.
 
 Made with care by MPS.
 ```
+
+**Keyword notes**: the title carries "silent mode timer"; the description
+naturally repeats "silent mode", "Do Not Disturb", "DND", "timer", "auto
+unmute", "ringer" and the common use cases (meeting, class, sleep, cinema,
+prayer). Avoid keyword lists — Play penalises keyword stuffing.
 
 ## Content rating
 
@@ -78,13 +103,10 @@ This satisfies Play's requirement that the privacy policy be reachable from insi
 
 ## Signing the release build
 
-The debug-signed release config in `android/app/build.gradle` works for local testing, but Play Store requires your own signing key for the real submission:
-
-```bash
-keytool -genkey -v -keystore gosilent-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias gosilent
-```
-
-Then add a proper `signingConfigs { release { ... } }` block referencing that keystore in `android/app/build.gradle`, and build:
+Release builds are signed with `android/app/gosilent-release.keystore`
+(alias `gosilent`), configured through `android/keystore.properties`. Both are
+gitignored — keep a backup of each outside the repo. Without
+`keystore.properties` the build silently falls back to the debug key.
 
 ```bash
 cd android && ./gradlew bundleRelease

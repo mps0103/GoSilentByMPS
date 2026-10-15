@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Single-color layer for Android 13+ themed (Material You) icons. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M54,25 A29,29 0 1,1 25,54" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M54,38 C48.48,38 44,42.48 44,48 L44,58 L41,62.5 L67,62.5 L64,58 L64,48 C64,42.48 59.52,38 54,38 Z M50.5,65 L57.5,65 C57.5,66.93 55.93,68.5 54,68.5 C52.07,68.5 50.5,66.93 50.5,65 Z" />
+</vector>

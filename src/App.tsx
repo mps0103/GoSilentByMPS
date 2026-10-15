@@ -1,17 +1,20 @@
-import React, {useEffect, useState} from 'react';
-import {BackHandler, StatusBar, StyleSheet, View} from 'react-native';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {Animated, BackHandler, Easing, StatusBar, StyleSheet, View} from 'react-native';
 import ParticleBackground from './components/ParticleBackground';
+import FadeIn from './components/FadeIn';
 import SplashScreen from './screens/SplashScreen';
 import OnboardingScreen from './screens/OnboardingScreen';
 import HomeScreen from './screens/HomeScreen';
 import AboutScreen from './screens/AboutScreen';
+import ThemeScreen from './screens/ThemeScreen';
 import {getPermissionState} from './native/SilenceTimer';
 import {ensureAdsConsentAndInit} from './lib/consent';
-import {colors} from './theme';
+import {ThemeProvider, useTheme} from './lib/ThemeContext';
 
-type Stage = 'splash' | 'onboarding' | 'home' | 'about';
+type Stage = 'splash' | 'onboarding' | 'home' | 'about' | 'themes';
 
-const SPLASH_DELAY_MS = 900;
+// Long enough for the splash story (ring, slash, countdown, title) to play out.
+const SPLASH_DELAY_MS = 1700;
 const STARTUP_TIMEOUT_MS = 1400;
 
 function withStartupTimeout<T>(
@@ -35,10 +38,40 @@ function withStartupTimeout<T>(
 }
 
 export default function App() {
+  return (
+    <ThemeProvider>
+      <AppShell />
+    </ThemeProvider>
+  );
+}
+
+function AppShell() {
+  const {theme} = useTheme();
   const [stage, setStage] = useState<Stage>('splash');
   // Remembers whether we came from onboarding or home, so "back" from
   // About returns to wherever the user actually was.
   const [previousStage, setPreviousStage] = useState<Stage>('home');
+
+  // ---- theme crossfade: the old background fades away over the new one ----
+  const [fadeFrom, setFadeFrom] = useState({color: theme.colors.bg, n: 0});
+  const fade = useRef(new Animated.Value(0)).current;
+  const lastBg = useRef(theme.colors.bg);
+  useLayoutEffect(() => {
+    if (lastBg.current === theme.colors.bg) return;
+    setFadeFrom(f => ({color: lastBg.current, n: f.n + 1}));
+    lastBg.current = theme.colors.bg;
+  }, [theme.colors.bg]);
+  // Runs after the overlay has been rendered in the old color.
+  useLayoutEffect(() => {
+    if (fadeFrom.n === 0) return;
+    fade.setValue(1);
+    Animated.timing(fade, {
+      toValue: 0,
+      duration: 520,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    }).start();
+  }, [fadeFrom, fade]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -76,14 +109,14 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  const openAbout = (from: Stage) => {
+  const openFrom = (from: Stage, to: Stage) => {
     setPreviousStage(from);
-    setStage('about');
+    setStage(to);
   };
 
   useEffect(() => {
     const onHardwareBack = () => {
-      if (stage === 'about') {
+      if (stage === 'about' || stage === 'themes') {
         setStage(previousStage);
         return true;
       }
@@ -94,21 +127,45 @@ export default function App() {
   }, [stage, previousStage]);
 
   return (
-    <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
+    <View style={[styles.root, {backgroundColor: theme.colors.bg}]}>
+      <StatusBar
+        barStyle={theme.dark ? 'light-content' : 'dark-content'}
+        backgroundColor={theme.colors.bg}
+      />
       <ParticleBackground />
       {stage === 'splash' && <SplashScreen />}
       {stage === 'onboarding' && (
-        <OnboardingScreen onContinue={() => setStage('home')} />
+        <FadeIn key="onboarding" style={styles.fill}>
+          <OnboardingScreen onContinue={() => setStage('home')} />
+        </FadeIn>
       )}
-      {stage === 'home' && <HomeScreen onAbout={() => openAbout('home')} />}
+      {stage === 'home' && (
+        <FadeIn key="home" style={styles.fill} from={24}>
+          <HomeScreen
+            onAbout={() => openFrom('home', 'about')}
+            onThemes={() => openFrom('home', 'themes')}
+          />
+        </FadeIn>
+      )}
       {stage === 'about' && (
-        <AboutScreen onBack={() => setStage(previousStage)} />
+        <FadeIn key="about" style={styles.fill} from={40} scaleFrom={1}>
+          <AboutScreen onBack={() => setStage(previousStage)} />
+        </FadeIn>
       )}
+      {stage === 'themes' && (
+        <FadeIn key="themes" style={styles.fill} from={40} scaleFrom={1}>
+          <ThemeScreen onBack={() => setStage(previousStage)} />
+        </FadeIn>
+      )}
+      <Animated.View
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, {backgroundColor: fadeFrom.color, opacity: fade}]}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {flex: 1, backgroundColor: colors.bg},
+  root: {flex: 1},
+  fill: {flex: 1},
 });

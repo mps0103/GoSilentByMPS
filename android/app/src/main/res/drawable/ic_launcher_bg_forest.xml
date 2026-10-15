@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated: "forest" theme launcher background. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:type="radial"
+        android:gradientRadius="76dp"
+        android:centerX="0.35"
+        android:centerY="0.3"
+        android:startColor="#163024"
+        android:endColor="#06100B" />
+</shape>

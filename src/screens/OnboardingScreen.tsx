@@ -4,25 +4,30 @@ import {
   AppState,
   Animated,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Svg, {Path} from 'react-native-svg';
-import {colors, gradients} from '../theme';
+import {useTheme, useThemedStyles} from '../lib/ThemeContext';
+import {Theme, alpha} from '../theme';
 import {
   getPermissionState,
   openDndSettings,
+  openBatterySettings,
+  openExactAlarmSettings,
   requestNotificationPermission,
   PermissionState,
 } from '../native/SilenceTimer';
 
 function BellOffIcon() {
+  const c = useTheme().theme.colors;
   return (
     <Svg width={34} height={34} viewBox="0 0 24 24">
       <Path
-        fill={colors.bg}
+        fill={c.onAccent}
         d="M12,22c1.1,0 2,-0.9 2,-2h-4c0,1.1 0.9,2 2,2zM18,16v-5c0,-3.07 -1.64,-5.64 -4.5,-6.32V4c0,-0.83 -0.67,-1.5 -1.5,-1.5s-1.5,0.67 -1.5,1.5v0.68C7.63,5.36 6,7.92 6,11v5l-2,2v1h16v-1l-2,-2z"
       />
     </Svg>
@@ -30,11 +35,12 @@ function BellOffIcon() {
 }
 
 function CheckIcon() {
+  const c = useTheme().theme.colors;
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24">
       <Path
         d="M5 12l5 5 9-12"
-        stroke={colors.amber}
+        stroke={c.accent}
         strokeWidth={2.5}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -55,6 +61,7 @@ function PermissionRow({
   granted: boolean;
   onPress: () => void;
 }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <Pressable
       style={[styles.row, granted && styles.rowGranted]}
@@ -77,6 +84,9 @@ interface Props {
 }
 
 export default function OnboardingScreen({onContinue}: Props) {
+  const {theme} = useTheme();
+  const c = theme.colors;
+  const styles = useThemedStyles(makeStyles);
   const [state, setState] = useState<PermissionState | null>(null);
   const [loading, setLoading] = useState(false);
   const iconScale = useRef(new Animated.Value(0)).current;
@@ -115,7 +125,7 @@ export default function OnboardingScreen({onContinue}: Props) {
     <View style={styles.wrap}>
       <Animated.View style={[styles.icon, {transform: [{scale: iconScale}]}]}>
         <LinearGradient
-          colors={gradients.amber as unknown as string[]}
+          colors={theme.gradient}
           style={styles.iconGradient}
           start={{x: 0, y: 0}}
           end={{x: 1, y: 1}}>
@@ -127,7 +137,7 @@ export default function OnboardingScreen({onContinue}: Props) {
       <Text style={styles.subtitle}>BEFORE WE BEGIN</Text>
       <View style={styles.divider} />
 
-      <View style={styles.rows}>
+      <ScrollView style={styles.rowsScroll} contentContainerStyle={styles.rows}>
         <PermissionRow
           title="Notifications"
           description="Show the active timer in your status bar"
@@ -140,9 +150,21 @@ export default function OnboardingScreen({onContinue}: Props) {
           granted={!!state?.dndGranted}
           onPress={handleDndPress}
         />
-      </View>
+        <PermissionRow
+          title="Alarms & reminders (recommended)"
+          description="Bring sound back exactly on time"
+          granted={state?.exactAlarmGranted !== false}
+          onPress={openExactAlarmSettings}
+        />
+        <PermissionRow
+          title="Battery: allow background use (recommended)"
+          description={'"Unrestricted" or "Allow background" keeps the timer alive'}
+          granted={state?.batteryUnrestricted !== false}
+          onPress={openBatterySettings}
+        />
+      </ScrollView>
 
-      <View style={{flex: 1}} />
+
 
       <Pressable
         style={[styles.continueBtn, !allGranted && styles.continueBtnDisabled]}
@@ -150,14 +172,14 @@ export default function OnboardingScreen({onContinue}: Props) {
         onPress={onContinue}>
         {allGranted ? (
           <LinearGradient
-            colors={gradients.amber as unknown as string[]}
+            colors={theme.gradient}
             style={StyleSheet.absoluteFillObject}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
           />
         ) : null}
         {loading ? (
-          <ActivityIndicator color={colors.textLo} />
+          <ActivityIndicator color={c.textLo} />
         ) : (
           <Text style={[styles.continueLabel, allGranted && styles.continueLabelActive]}>
             {allGranted ? 'CONTINUE' : 'GRANT ACCESS TO CONTINUE'}
@@ -170,59 +192,63 @@ export default function OnboardingScreen({onContinue}: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  wrap: {flex: 1, alignItems: 'center', paddingHorizontal: 28, paddingVertical: 60},
+const makeStyles = (t: Theme) => {
+  const c = t.colors;
+  return StyleSheet.create({
+  wrap: {flex: 1, alignItems: 'center', paddingHorizontal: 28, paddingTop: 48, paddingBottom: 28},
   icon: {width: 80, height: 80, borderRadius: 40, overflow: 'hidden'},
   iconGradient: {flex: 1, alignItems: 'center', justifyContent: 'center'},
   title: {
     marginTop: 28,
-    color: colors.textHi,
+    color: c.textHi,
     fontSize: 26,
     fontWeight: '300',
     letterSpacing: 8,
   },
-  subtitle: {marginTop: 10, color: colors.textLo, fontSize: 10, letterSpacing: 3},
-  divider: {marginTop: 8, height: 1, width: 100, backgroundColor: colors.amber, opacity: 0.5},
-  rows: {width: '100%', marginTop: 28, gap: 12},
+  subtitle: {marginTop: 10, color: c.textLo, fontSize: 10, letterSpacing: 3},
+  divider: {marginTop: 8, height: 1, width: 100, backgroundColor: c.accent, opacity: 0.5},
+  rowsScroll: {width: '100%', flex: 1, marginTop: 24, marginBottom: 16},
+  rows: {gap: 12},
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
     borderRadius: 16,
-    backgroundColor: colors.surface,
+    backgroundColor: c.surface,
     borderWidth: 1,
-    borderColor: colors.surface2,
+    borderColor: c.surface2,
     padding: 14,
   },
-  rowGranted: {borderColor: 'rgba(251,191,36,0.5)'},
+  rowGranted: {borderColor: alpha(c.accent, 0.5)},
   rowIcon: {
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: colors.surface2,
+    backgroundColor: c.surface2,
     borderWidth: 1,
-    borderColor: colors.surface2,
+    borderColor: c.surface2,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
-  rowIconGranted: {backgroundColor: 'rgba(251,191,36,0.18)', borderColor: 'rgba(251,191,36,0.7)'},
-  rowIconQuestion: {color: colors.textLo, fontSize: 16, fontWeight: '500'},
+  rowIconGranted: {backgroundColor: alpha(c.accent, 0.18), borderColor: alpha(c.accent, 0.7)},
+  rowIconQuestion: {color: c.textLo, fontSize: 16, fontWeight: '500'},
   rowText: {flex: 1},
-  rowTitle: {color: colors.textHi, fontSize: 13, fontWeight: '500', letterSpacing: 1},
-  rowDesc: {color: colors.textLo, fontSize: 10, marginTop: 2},
-  rowTap: {color: colors.amber, fontSize: 9, letterSpacing: 2, fontWeight: '500'},
+  rowTitle: {color: c.textHi, fontSize: 13, fontWeight: '500', letterSpacing: 1},
+  rowDesc: {color: c.textLo, fontSize: 10, marginTop: 2},
+  rowTap: {color: c.accent, fontSize: 9, letterSpacing: 2, fontWeight: '500'},
   continueBtn: {
     width: '85%',
     height: 54,
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: c.surface,
     overflow: 'hidden',
   },
   continueBtnDisabled: {},
-  continueLabel: {color: colors.textLo, fontSize: 11, letterSpacing: 3, fontWeight: '500'},
-  continueLabelActive: {color: colors.bg},
-  footnote: {marginTop: 14, color: colors.textDim, fontSize: 9, letterSpacing: 2},
+  continueLabel: {color: c.textLo, fontSize: 11, letterSpacing: 3, fontWeight: '500'},
+  continueLabelActive: {color: c.onAccent},
+  footnote: {marginTop: 14, color: c.textDim, fontSize: 9, letterSpacing: 2},
 });
+};

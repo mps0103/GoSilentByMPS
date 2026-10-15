@@ -5,7 +5,9 @@
 - Local folder: `D:\ClaudeAiProjrcts\go-silent-rn\go-silent-rn`
 - GitHub repo: `https://github.com/mps0103/GoSilentByMPS` (branch `main`)
 - Android package: `com.mps.gosilent`
-- App display name: "Go Silent by MPS"
+- Play Store title: "Go Silent: Silent Mode Timer"
+- Name under the launcher icon (`app_name`): "Go Silent"
+- In-app header keeps the "BY MPS" branding
 
 The local folder name and the GitHub repo name are deliberately different.
 This is intentional and settled. Do NOT rename the folder, do NOT suggest

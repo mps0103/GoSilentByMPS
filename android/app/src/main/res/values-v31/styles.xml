@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Android 12+ draws its own launch splash before JS loads. Keep it on the
+      app's dark background; with no icon override it shows the launcher icon,
+      which LauncherIcon.kt keeps matched to the chosen theme.
+    -->
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+        <item name="android:windowSplashScreenBackground">@color/bg</item>
+    </style>
+</resources>

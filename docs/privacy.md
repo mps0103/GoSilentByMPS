@@ -2,11 +2,11 @@
 title: Privacy Policy
 ---
 
-# Privacy Policy - Go Silent by MPS
+# Privacy Policy - Go Silent: Silent Mode Timer
 
-**Effective date:** 11 September 2026
+**Effective date:** 15 October 2026
 
-Go Silent by MPS ("the app") is developed by MPS. This policy explains what the
+Go Silent: Silent Mode Timer ("the app") is developed by MPS. This policy explains what the
 app does and does not do with your information. This same text is linked from
 the app's own About screen.
 
@@ -15,13 +15,15 @@ the app's own About screen.
 **We do not collect, store, or transmit any personal information.**
 
 The app has no account system, no login, and no server of its own. Everything
-you set in the app - your timer duration and your choice of Silent or Do Not
-Disturb mode - stays on your device and is never sent anywhere.
+you set in the app - your timer duration, your choice of Silent or Do Not
+Disturb mode, and your colour theme - stays on your device and is never sent
+anywhere.
 
 ## Advertising
 
-The app displays banner advertisements supplied by **Google AdMob**. To serve
-and measure those ads, Google may collect:
+The app displays a banner advertisement and, when a timer finishes, an
+occasional full-screen (interstitial) advertisement, both supplied by
+**Google AdMob**. To serve and measure those ads, Google may collect:
 
 - **Advertising ID (AAID)** - a resettable identifier assigned by Android
 - **IP address**
@@ -51,11 +53,13 @@ time in Android Settings -> Google -> Ads.
 
 | Permission | Purpose |
 |---|---|
-| INTERNET / ACCESS_NETWORK_STATE | Load banner ads via AdMob |
+| INTERNET / ACCESS_NETWORK_STATE | Load ads via AdMob |
 | ACCESS_NOTIFICATION_POLICY | Switch your phone to Silent or Do Not Disturb for the duration you choose, and restore your previous setting when the timer ends |
 | POST_NOTIFICATIONS | Show the ongoing timer notification, so you can see the remaining time and stop the session |
 | FOREGROUND_SERVICE / FOREGROUND_SERVICE_SPECIAL_USE | Keep the timer running reliably so your sound is restored even if you leave the app |
 | WAKE_LOCK | Keep the timer ticking while the device is idle |
+| SCHEDULE_EXACT_ALARM | Restore your sound at exactly the time the timer ends, even if the phone is asleep |
+| RECEIVE_BOOT_COMPLETED | If the phone restarts during a timer, resume it or restore your sound |
 | VIBRATE | Optional haptics |
 
 None of these permissions are used to read your messages, calls, contacts,
@@ -63,7 +67,7 @@ location, or any other personal data.
 
 ## Your choices
 
-- Revoke any permission from Android Settings -> Apps -> Go Silent by MPS -> Permissions
+- Revoke any permission from Android Settings -> Apps -> Go Silent -> Permissions
 - Reset or opt out of the Advertising ID: Settings -> Google -> Ads
 - Contact us to ask about any data associated with your device
 

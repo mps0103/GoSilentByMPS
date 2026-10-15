@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated: "daylight" theme launcher foreground - bell-off inside a countdown ring. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- faint full track -->
+    <path
+        android:strokeColor="#33F59E0B"
+        android:strokeWidth="3"
+        android:pathData="M54,25 A29,29 0 1,1 53.99,25" />
+    <!-- countdown arc, ~3/4 remaining -->
+    <path
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M54,25 A29,29 0 1,1 25,54">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:type="linear"
+                android:startX="25" android:startY="25"
+                android:endX="83" android:endY="83"
+                android:startColor="#F59E0B"
+                android:endColor="#EA580C" />
+        </aapt:attr>
+    </path>
+    <!-- spark at the arc's leading end -->
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M25,54 m-3.5,0 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0" />
+    <!-- bell -->
+    <path
+        android:pathData="M54,38 C48.48,38 44,42.48 44,48 L44,58 L41,62.5 L67,62.5 L64,58 L64,48 C64,42.48 59.52,38 54,38 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="44" android:startY="38"
+                android:endX="64" android:endY="63"
+                android:startColor="#F59E0B"
+                android:endColor="#EA580C" />
+        </aapt:attr>
+    </path>
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M50.5,65 L57.5,65 C57.5,66.93 55.93,68.5 54,68.5 C52.07,68.5 50.5,66.93 50.5,65 Z" />
+    <!-- slash, with a background-colored gap so it reads cleanly -->
+    <path
+        android:strokeColor="#F7F3EE"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:pathData="M42,42 L66,66" />
+    <path
+        android:strokeColor="#EA580C"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M42,42 L66,66" />
+</vector>
