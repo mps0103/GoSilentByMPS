@@ -92,6 +92,14 @@ export function openBatterySettings(): void {
   SilenceModule.openBatterySettings();
 }
 
+/**
+ * Edge-to-edge: the app draws behind transparent system bars, so their icons
+ * must contrast with the theme. light=true gives dark icons (Daylight theme).
+ */
+export function setSystemBarsLight(light: boolean): void {
+  SilenceModule?.setSystemBarsLight(light);
+}
+
 /** Hides the battery hint without opening settings. */
 export function dismissBatteryHint(): void {
   SilenceModule.markBatteryHintDone();

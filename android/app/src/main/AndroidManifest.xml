@@ -21,13 +21,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:allowBackup="true"
         android:theme="@style/AppTheme"
-        android:supportsRtl="true">
+        android:supportsRtl="true"
+        android:enableOnBackInvokedCallback="false">
 
-        <!--
-          AdMob App ID — this is GOOGLE'S TEST ID, always safe to ship during development.
-          Replace with your real App ID (from admob.google.com) before you publish for real.
-          Never test with your real ID — Google can flag your account for invalid traffic.
-        -->
+        <!-- AdMob App ID (real). Ad unit ids live in src/lib/adUnits.ts. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-2904788540387890~2230608282"/>

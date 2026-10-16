@@ -7,7 +7,8 @@ import OnboardingScreen from './screens/OnboardingScreen';
 import HomeScreen from './screens/HomeScreen';
 import AboutScreen from './screens/AboutScreen';
 import ThemeScreen from './screens/ThemeScreen';
-import {getPermissionState} from './native/SilenceTimer';
+import {SafeAreaProvider, useSafeAreaInsets} from 'react-native-safe-area-context';
+import {getPermissionState, setSystemBarsLight} from './native/SilenceTimer';
 import {ensureAdsConsentAndInit} from './lib/consent';
 import {ThemeProvider, useTheme} from './lib/ThemeContext';
 
@@ -39,14 +40,22 @@ function withStartupTimeout<T>(
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AppShell />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <AppShell />
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
 
 function AppShell() {
   const {theme} = useTheme();
+  const insets = useSafeAreaInsets();
+
+  // Status and navigation bar icons follow the theme (dark icons on Daylight).
+  useEffect(() => {
+    setSystemBarsLight(!theme.dark);
+  }, [theme.dark]);
   const [stage, setStage] = useState<Stage>('splash');
   // Remembers whether we came from onboarding or home, so "back" from
   // About returns to wherever the user actually was.
@@ -130,33 +139,39 @@ function AppShell() {
     <View style={[styles.root, {backgroundColor: theme.colors.bg}]}>
       <StatusBar
         barStyle={theme.dark ? 'light-content' : 'dark-content'}
-        backgroundColor={theme.colors.bg}
+        translucent
+        backgroundColor="transparent"
       />
+      {/* Background art runs edge to edge, behind the system bars... */}
       <ParticleBackground />
-      {stage === 'splash' && <SplashScreen />}
-      {stage === 'onboarding' && (
-        <FadeIn key="onboarding" style={styles.fill}>
-          <OnboardingScreen onContinue={() => setStage('home')} />
-        </FadeIn>
-      )}
-      {stage === 'home' && (
-        <FadeIn key="home" style={styles.fill} from={24}>
-          <HomeScreen
-            onAbout={() => openFrom('home', 'about')}
-            onThemes={() => openFrom('home', 'themes')}
-          />
-        </FadeIn>
-      )}
-      {stage === 'about' && (
-        <FadeIn key="about" style={styles.fill} from={40} scaleFrom={1}>
-          <AboutScreen onBack={() => setStage(previousStage)} />
-        </FadeIn>
-      )}
-      {stage === 'themes' && (
-        <FadeIn key="themes" style={styles.fill} from={40} scaleFrom={1}>
-          <ThemeScreen onBack={() => setStage(previousStage)} />
-        </FadeIn>
-      )}
+      {/* ...while the content stays clear of them. */}
+      <View
+        style={[styles.fill, {paddingTop: insets.top, paddingBottom: insets.bottom}]}>
+        {stage === 'splash' && <SplashScreen />}
+        {stage === 'onboarding' && (
+          <FadeIn key="onboarding" style={styles.fill}>
+            <OnboardingScreen onContinue={() => setStage('home')} />
+          </FadeIn>
+        )}
+        {stage === 'home' && (
+          <FadeIn key="home" style={styles.fill} from={24}>
+            <HomeScreen
+              onAbout={() => openFrom('home', 'about')}
+              onThemes={() => openFrom('home', 'themes')}
+            />
+          </FadeIn>
+        )}
+        {stage === 'about' && (
+          <FadeIn key="about" style={styles.fill} from={40} scaleFrom={1}>
+            <AboutScreen onBack={() => setStage(previousStage)} />
+          </FadeIn>
+        )}
+        {stage === 'themes' && (
+          <FadeIn key="themes" style={styles.fill} from={40} scaleFrom={1}>
+            <ThemeScreen onBack={() => setStage(previousStage)} />
+          </FadeIn>
+        )}
+      </View>
       <Animated.View
         pointerEvents="none"
         style={[StyleSheet.absoluteFill, {backgroundColor: fadeFrom.color, opacity: fade}]}

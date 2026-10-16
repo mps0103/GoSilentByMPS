@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -192,6 +193,25 @@ class SilenceModule(private val reactContext: ReactApplicationContext) :
         promise.resolve(result)
     }
 
+    /**
+     * Edge-to-edge (forced from Android 15 for apps targeting 35+): system bars
+     * are transparent over our theme, so pick dark or light icons to match.
+     */
+    @ReactMethod
+    fun setSystemBarsLight(light: Boolean) {
+        val activity = reactApplicationContext.currentActivity ?: return
+        activity.runOnUiThread {
+            val controller = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
+            controller.isAppearanceLightStatusBars = light
+            controller.isAppearanceLightNavigationBars = light
+            // No translucent scrim behind 3-button navigation - our background
+            // already runs underneath it and the icons are tinted above.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                activity.window.isNavigationBarContrastEnforced = false
+            }
+        }
+    }
+
     /** User opened the battery page from our hint, or dismissed the hint. */
     @ReactMethod
     fun markBatteryHintDone() {
@@ -237,7 +257,7 @@ class SilenceModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun requestNotificationPermission(promise: Promise) {
-        val activity = currentActivity
+        val activity = reactApplicationContext.currentActivity
         if (activity is MainActivity) {
             activity.requestNotificationPermissionFromNative()
             promise.resolve(null)

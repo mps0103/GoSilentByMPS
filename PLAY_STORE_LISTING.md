@@ -8,47 +8,57 @@ Name under the launcher icon is just `Go Silent` (`app_name` in
 `android/app/src/main/res/values/strings.xml`) so it never gets truncated.
 
 **Short description (80 max)**:
-`Silent or Do Not Disturb for a set time, then your phone rings again by itself.` (79)
+`Do Not Disturb & silent timer - auto unmute, so you never miss calls again` (74)
+
+The title already carries "silent mode timer"; the short description adds the
+other high-intent terms ("Do Not Disturb", "auto unmute") plus the benefit.
 
 **Full description (4000 max)**:
 ```
-Go Silent is a silent mode timer: put your phone on Silent or Do Not Disturb for as long as you need, and it switches your ringer back on automatically when the time is up. No more missed calls because you forgot to unmute after a meeting.
+Go Silent is the simple silent mode timer for Android. Put your phone on Silent or Do Not Disturb for as long as you need, and your ringer turns back on automatically when time is up. No more missed calls because you forgot to unmute after a meeting, a class or the cinema.
 
-TWO WAYS TO SET THE TIMER
-• For how long – spin the dials and silence your phone for 10 minutes, 1 hour or up to 23 hours 59 minutes
-• Until a time – tap the clock and choose when sound comes back, like "silent until 7:30 AM"
+⏱ TWO WAYS TO SET YOUR SILENT TIMER
+• For how long – spin the dials to silence your phone for 15 minutes, 1 hour, 2 hours or up to 23 hours 59 minutes
+• Until a time – tap the clock and pick when sound returns, like "silent until 7:30 AM"
 
-PERFECT FOR
-Meetings, class, lectures, cinema, prayer, worship, exams, interviews, naps, sleep, meditation, the gym and anywhere your phone should stay quiet for a while.
-
-SILENT MODE OR DO NOT DISTURB
+🔕 SILENT MODE OR DO NOT DISTURB
 • Silent mode mutes your ringtone and notification sounds
-• Do Not Disturb mode uses Android's DND so priority contacts can still reach you
-• Your exact ringer volume and mode are restored when the timer ends – auto unmute, every time
+• Do Not Disturb (DND) mode uses Android's DND, so priority contacts and alarms still get through
+• Auto unmute: your exact ringer volume and ringer mode are restored when the timer ends
 
-RELIABLE, EVEN IN THE BACKGROUND
-• Keeps counting when you lock the screen or switch apps
-• Survives clearing recent apps and phone restarts
-• Exact alarms bring the sound back right on time
+✅ PERFECT FOR
+Meetings, class and lectures, exams, interviews, the cinema, prayer and worship, the library, the gym, meditation, naps, bedtime and sleep – anywhere your phone should stay quiet for a while.
+
+🔋 RELIABLE IN THE BACKGROUND
+• Keeps counting when the screen is locked or you switch apps
+• Keeps working if you clear recent apps or restart your phone
+• Exact alarms bring your sound back right on time, even when the phone is asleep
 • Stop early from the app or straight from the notification
 
-BEAUTIFUL AND SIMPLE
-• Live countdown ring that shows exactly when your phone rings again
+🎨 BEAUTIFUL AND EASY
+• Live countdown ring shows exactly when your phone rings again
 • Six colour themes – Ember, Ocean, Forest, Rose, Aurora and Daylight – and the app icon changes to match
 • Smooth animations, one tap to start
 
-PRIVATE BY DESIGN
-No account, no sign-up. Your timers and settings never leave your phone.
+🔒 PRIVATE BY DESIGN
+No account and no sign-up. Your timers and settings stay on your phone.
 
-Go Silent is free and supported by ads.
+FAQ
+How do I put my phone on silent for 1 hour? Open Go Silent, set 1 hour and tap Begin Silence. Your phone goes silent and the ringer comes back on by itself after an hour.
+Can I keep my phone silent until the morning? Yes – choose "Until a time", pick 7:00 AM and sleep in peace.
+Does my alarm still ring? Yes. Go Silent never touches your alarm volume, so your alarm clock rings in both modes.
+
+Go Silent – silent mode timer and Do Not Disturb timer with auto unmute. Free, supported by ads.
 
 Made with care by MPS.
 ```
 
-**Keyword notes**: the title carries "silent mode timer"; the description
-naturally repeats "silent mode", "Do Not Disturb", "DND", "timer", "auto
-unmute", "ringer" and the common use cases (meeting, class, sleep, cinema,
-prayer). Avoid keyword lists — Play penalises keyword stuffing.
+**Keyword notes**: title = "silent mode timer"; short description = "Do Not
+Disturb", "silent timer", "auto unmute". The full description repeats these
+naturally (silent ~13, timer 6, Do Not Disturb 5, ringer 4, DND 2, auto
+unmute 2) and covers long-tail searches in the FAQ ("silent for 1 hour",
+"silent until morning", "does my alarm still ring"). Google indexes all three
+fields; never add keyword lists — Play penalises stuffing.
 
 ## Content rating
 

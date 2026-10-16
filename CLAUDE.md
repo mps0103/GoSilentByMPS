@@ -33,12 +33,22 @@ Jekyll renders `docs/privacy.md` as `privacy.html`.
 
 ## Stack - do not upgrade casually
 
-React Native 0.74.5, React 18.2.0, Kotlin 1.9.24, AGP 8.1.1, Gradle 8.6,
-compileSdk/targetSdk 34, minSdk 26.
+React Native 0.81.6, React 19.1.4, Kotlin 2.1.20, AGP from the RN Gradle
+plugin catalog, Gradle 8.14.3 (local zip in `C:\Gradle`), NDK 27.1,
+compileSdk/targetSdk 36, minSdk 26. Upgraded from 0.74.5 in Oct 2026 because
+Play requires targetSdk 36 and 16 KB-aligned native libraries (RN >= 0.77).
 
-RN 0.74.5 uses the OLDER CLI-based autolinking (`native_modules.gradle` via
-`applyNativeModulesSettingsGradle` / `applyNativeModulesAppBuildGradle`).
-Do NOT "upgrade" this to the RN 0.75+ API - those methods do not exist here.
+- Old architecture (`newArchEnabled=false`). `react-native-google-mobile-ads`
+  is pinned to 15.8.3: 16.x dropped the old architecture and pulls Mobile Ads
+  SDK 25.x, which is compiled with Kotlin 2.3 and breaks the build.
+- RN 0.75+ autolinking: `autolinkLibrariesFromCommand()` in `settings.gradle`
+  and `autolinkLibrariesWithApp()` in `app/build.gradle`. The old
+  `native_modules.gradle` no longer exists.
+- Edge-to-edge (`edgeToEdgeEnabled=true`); insets come from
+  `react-native-safe-area-context` in `src/App.tsx`.
+- Predictive back is opted out in the manifest so `BackHandler` keeps working.
+- Stop the Gradle daemon (`gradlew --stop`) before `npm install`, or npm hits
+  EBUSY on locked files in `node_modules`.
 
 In `settings.gradle`, `pluginManagement { }` must remain the literal first
 statement.

@@ -3,10 +3,12 @@ package com.mps.gosilent
 import android.app.Application
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
+import com.facebook.react.ReactHost
+import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 import com.facebook.react.ReactNativeHost
 import com.facebook.react.ReactPackage
+import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
-import com.facebook.soloader.SoLoader
 import com.mps.gosilent.nativemodules.SilencePackage
 
 class MainApplication : Application(), ReactApplication {
@@ -22,16 +24,17 @@ class MainApplication : Application(), ReactApplication {
 
             override fun getUseDeveloperSupport(): Boolean = BuildConfig.DEBUG
 
-            override val isNewArchEnabled: Boolean = false
-            override val isHermesEnabled: Boolean = true
+            override val isNewArchEnabled: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
+            override val isHermesEnabled: Boolean = BuildConfig.IS_HERMES_ENABLED
         }
+
+    override val reactHost: ReactHost
+        get() = getDefaultReactHost(applicationContext, reactNativeHost)
 
     override fun onCreate() {
         super.onCreate()
-        SoLoader.init(this, false)
-        // AdMob initialization now happens from JS (src/lib/consent.ts) after
-        // the GDPR/UK consent flow resolves — see ensureAdsConsentAndInit().
-        // Initializing it here too would just double-init; the SDK handles
-        // that safely, but there's no reason to do it twice.
+        loadReactNative(this)
+        // AdMob initialization happens from JS (src/lib/consent.ts) after the
+        // GDPR/UK consent flow resolves - see ensureAdsConsentAndInit().
     }
 }

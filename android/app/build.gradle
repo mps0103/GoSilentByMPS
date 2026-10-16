@@ -2,6 +2,11 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
+react {
+    // RN 0.75+ autolinking (replaces the old native_modules.gradle).
+    autolinkLibrariesWithApp()
+}
+
 def enableProguardInReleaseBuilds = false
 
 def keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -42,19 +47,9 @@ android {
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
-
-    packagingOptions {
-        jniLibs {
-            useLegacyPackaging true
-        }
-    }
 }
 
 dependencies {
     implementation("com.facebook.react:react-android")
     implementation("com.facebook.react:hermes-android")
-    implementation("com.google.android.gms:play-services-ads:23.2.0")
 }
-
-apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
-applyNativeModulesAppBuildGradle(project)
