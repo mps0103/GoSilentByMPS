@@ -1,4 +1,0 @@
-D:\ClaudeAiProjrcts\go-silent-rn\go-silent-rn\node_modules\react-native-google-mobile-ads\android\generated\jni\CMakeLists.txt
-D:\ClaudeAiProjrcts\go-silent-rn\go-silent-rn\node_modules\react-native-safe-area-context\android\src\main\jni\CMakeLists.txt
-D:\ClaudeAiProjrcts\go-silent-rn\go-silent-rn\node_modules\react-native-svg\android\src\main\jni\CMakeLists.txt
-D:\ClaudeAiProjrcts\go-silent-rn\go-silent-rn\node_modules\react-native\ReactAndroid\cmake-utils\default-app-setup\CMakeLists.txt

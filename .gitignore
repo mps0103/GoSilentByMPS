@@ -6,6 +6,8 @@ npm-debug.log*
 android/local.properties
 android/app/build/
 android/build/
+# Native (CMake/ninja) build cache created by New Architecture builds
+android/app/.cxx/
 android/.gradle/
 *.iml
 .idea/
