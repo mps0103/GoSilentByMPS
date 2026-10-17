@@ -13,8 +13,8 @@ const nativeInfo = (NativeModules.SilenceModule ?? {}) as {
 	versionCode?: number;
 };
 
-export const APP_VERSION = nativeInfo.versionName || '1.1.0';
-export const APP_BUILD = nativeInfo.versionCode ?? 3;
+export const APP_VERSION = nativeInfo.versionName || '1.1.2';
+export const APP_BUILD = nativeInfo.versionCode ?? 5;
 
 export const PRIVACY_POLICY_URL =
 	'https://mps0103.github.io/GoSilentByMPS/privacy.html';

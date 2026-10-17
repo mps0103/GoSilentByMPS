@@ -1,0 +1,4 @@
+D:/ClaudeAiProjrcts/go-silent-rn/go-silent-rn/android/app/.cxx/RelWithDebInfo/3t5r3y5j/x86/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/foo.dir
+D:/ClaudeAiProjrcts/go-silent-rn/go-silent-rn/android/app/.cxx/RelWithDebInfo/3t5r3y5j/x86/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/boo.dir
+D:/ClaudeAiProjrcts/go-silent-rn/go-silent-rn/android/app/.cxx/RelWithDebInfo/3t5r3y5j/x86/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/edit_cache.dir
+D:/ClaudeAiProjrcts/go-silent-rn/go-silent-rn/android/app/.cxx/RelWithDebInfo/3t5r3y5j/x86/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/rebuild_cache.dir

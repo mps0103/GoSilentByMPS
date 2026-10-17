@@ -151,6 +151,9 @@ export default function HomeScreen({
     }
   }, [page, hours, minutes, until, mode]);
 
+  // Stable so the memoised ClockPicker isn't re-rendered by unrelated state.
+  const handleUntil = useCallback((h: number, m: number) => setUntil({h, m}), []);
+
   const handleCancel = useCallback(async () => {
     await cancelTimer();
   }, []);
@@ -179,7 +182,7 @@ export default function HomeScreen({
               onHours={setHours}
               onMinutes={setMinutes}
               until={until}
-              onUntil={(h, m) => setUntil({h, m})}
+              onUntil={handleUntil}
               mode={mode}
               onMode={setMode}
               onStart={handleStart}
@@ -253,7 +256,7 @@ function Header({
         ]}>
         <LinearGradient
           colors={theme.gradient}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
           start={{x: 0, y: 0}}
           end={{x: 1, y: 1}}
         />
@@ -322,53 +325,66 @@ function PickerView({
   const [box, setBox] = useState({w: 0, h: 0});
   const [tabsW, setTabsW] = useState(0);
   const pos = useRef(new Animated.Value(0)).current; // 0 .. -box.w
+  // Gesture-side copy of the page. goTo() updates it at once; the `page`
+  // state follows when the slide finishes, so the re-render it causes never
+  // lands on top of the animation.
   const live = useRef({page, w: 0});
-  live.current = {page, w: box.w};
+  live.current.w = box.w;
 
   const goTo = useCallback(
     (p: number) => {
-      onPage(p);
+      live.current.page = p;
       Animated.spring(pos, {
         toValue: -p * live.current.w,
         friction: 9,
         tension: 60,
         useNativeDriver: true,
-      }).start();
+      }).start(() => onPage(live.current.page));
     },
     [onPage, pos],
   );
 
   // Keep the pager aligned if the width changes (first layout, rotation).
   useEffect(() => {
-    pos.setValue(-page * box.w);
+    pos.setValue(-live.current.page * box.w);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [box.w]);
 
-  const pan = useMemo(
-    () =>
-      PanResponder.create({
-        // Only horizontal swipes; taps and vertical drags go to the dials.
-        onMoveShouldSetPanResponder: (_, g) =>
-          Math.abs(g.dx) > 14 && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
-        onPanResponderMove: (_, g) => {
-          const {page: p, w} = live.current;
-          let x = -p * w + g.dx;
-          // Rubber-band past either edge.
-          if (x > 0) x = x * 0.3;
-          if (x < -w) x = -w + (x + w) * 0.3;
-          pos.setValue(x);
-        },
-        onPanResponderRelease: (_, g) => {
-          const {page: p, w} = live.current;
-          let next = p;
-          if (g.dx < -w * 0.22 || g.vx < -0.45) next = 1;
-          else if (g.dx > w * 0.22 || g.vx > 0.45) next = 0;
-          goTo(next);
-        },
-        onPanResponderTerminate: () => goTo(live.current.page),
-      }),
-    [pos, goTo],
-  );
+  // Finger travel already used up by the "is this horizontal?" check, so the
+  // page follows the finger from where it is instead of jumping.
+  const grabDx = useRef(0);
+
+  const pan = useMemo(() => {
+    // Only clear horizontal swipes; taps and vertical drags go to the dials.
+    const horizontal = (g: {dx: number; dy: number}) =>
+      Math.abs(g.dx) > 10 && Math.abs(g.dx) > Math.abs(g.dy) * 1.5;
+    return PanResponder.create({
+      // Capture phase: claim the swipe before the dial lists can start a
+      // scroll. The clock face keeps its own drags - it refuses termination.
+      onMoveShouldSetPanResponderCapture: (_, g) => horizontal(g),
+      onMoveShouldSetPanResponder: (_, g) => horizontal(g),
+      onPanResponderGrant: (_, g) => {
+        grabDx.current = g.dx;
+      },
+      onPanResponderMove: (_, g) => {
+        const {page: p, w} = live.current;
+        let x = -p * w + (g.dx - grabDx.current);
+        // Rubber-band past either edge.
+        if (x > 0) x = x * 0.3;
+        if (x < -w) x = -w + (x + w) * 0.3;
+        pos.setValue(x);
+      },
+      onPanResponderRelease: (_, g) => {
+        const {page: p, w} = live.current;
+        const dx = g.dx - grabDx.current;
+        let next = p;
+        if (dx < -w * 0.22 || g.vx < -0.45) next = 1;
+        else if (dx > w * 0.22 || g.vx > 0.45) next = 0;
+        goTo(next);
+      },
+      onPanResponderTerminate: () => goTo(live.current.page),
+    });
+  }, [pos, goTo]);
 
   // ---- "until" summary refreshes as the clock ticks ----
   const [now, setNow] = useState(() => Date.now());
@@ -422,7 +438,7 @@ function PickerView({
               colors={[alpha(c.accent, 0.22), alpha(c.accentDeep, 0.22)]}
               start={{x: 0, y: 0}}
               end={{x: 1, y: 1}}
-              style={StyleSheet.absoluteFillObject}
+              style={StyleSheet.absoluteFill}
             />
           </Animated.View>
         )}
@@ -689,7 +705,7 @@ function CompletedView({onReset}: {onReset: () => void}) {
           ]}>
           <LinearGradient
             colors={theme.gradient}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
           />

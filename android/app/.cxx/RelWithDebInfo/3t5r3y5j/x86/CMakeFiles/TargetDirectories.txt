@@ -1,0 +1,12 @@
+D:/ClaudeAiProjrcts/go-silent-rn/go-silent-rn/android/app/.cxx/RelWithDebInfo/3t5r3y5j/x86/CMakeFiles/appmodules.dir
+D:/ClaudeAiProjrcts/go-silent-rn/go-silent-rn/android/app/.cxx/RelWithDebInfo/3t5r3y5j/x86/CMakeFiles/edit_cache.dir
+D:/ClaudeAiProjrcts/go-silent-rn/go-silent-rn/android/app/.cxx/RelWithDebInfo/3t5r3y5j/x86/CMakeFiles/rebuild_cache.dir
+D:/ClaudeAiProjrcts/go-silent-rn/go-silent-rn/android/app/.cxx/RelWithDebInfo/3t5r3y5j/x86/RNGoogleMobileAdsSpec_autolinked_build/CMakeFiles/react_codegen_RNGoogleMobileAdsSpec.dir
+D:/ClaudeAiProjrcts/go-silent-rn/go-silent-rn/android/app/.cxx/RelWithDebInfo/3t5r3y5j/x86/RNGoogleMobileAdsSpec_autolinked_build/CMakeFiles/edit_cache.dir
+D:/ClaudeAiProjrcts/go-silent-rn/go-silent-rn/android/app/.cxx/RelWithDebInfo/3t5r3y5j/x86/RNGoogleMobileAdsSpec_autolinked_build/CMakeFiles/rebuild_cache.dir
+D:/ClaudeAiProjrcts/go-silent-rn/go-silent-rn/android/app/.cxx/RelWithDebInfo/3t5r3y5j/x86/safeareacontext_autolinked_build/CMakeFiles/react_codegen_safeareacontext.dir
+D:/ClaudeAiProjrcts/go-silent-rn/go-silent-rn/android/app/.cxx/RelWithDebInfo/3t5r3y5j/x86/safeareacontext_autolinked_build/CMakeFiles/edit_cache.dir
+D:/ClaudeAiProjrcts/go-silent-rn/go-silent-rn/android/app/.cxx/RelWithDebInfo/3t5r3y5j/x86/safeareacontext_autolinked_build/CMakeFiles/rebuild_cache.dir
+D:/ClaudeAiProjrcts/go-silent-rn/go-silent-rn/android/app/.cxx/RelWithDebInfo/3t5r3y5j/x86/rnsvg_autolinked_build/CMakeFiles/react_codegen_rnsvg.dir
+D:/ClaudeAiProjrcts/go-silent-rn/go-silent-rn/android/app/.cxx/RelWithDebInfo/3t5r3y5j/x86/rnsvg_autolinked_build/CMakeFiles/edit_cache.dir
+D:/ClaudeAiProjrcts/go-silent-rn/go-silent-rn/android/app/.cxx/RelWithDebInfo/3t5r3y5j/x86/rnsvg_autolinked_build/CMakeFiles/rebuild_cache.dir

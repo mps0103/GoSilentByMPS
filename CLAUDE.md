@@ -33,14 +33,23 @@ Jekyll renders `docs/privacy.md` as `privacy.html`.
 
 ## Stack - do not upgrade casually
 
-React Native 0.81.6, React 19.1.4, Kotlin 2.1.20, AGP from the RN Gradle
-plugin catalog, Gradle 8.14.3 (local zip in `C:\Gradle`), NDK 27.1,
-compileSdk/targetSdk 36, minSdk 26. Upgraded from 0.74.5 in Oct 2026 because
-Play requires targetSdk 36 and 16 KB-aligned native libraries (RN >= 0.77).
+React Native 0.88.0, React 19.3.0, TypeScript 6, Kotlin 2.2.0, AGP from the
+RN Gradle plugin catalog, Gradle 9.4.1 (local zip in `C:\Gradle`), NDK 27.1,
+compileSdk 37, targetSdk 36, minSdk 26, Node >= 22.11. History: 0.74.5 ->
+0.81.6 (Oct 2026, Play needs targetSdk 36 + 16 KB libraries) -> 0.88.0.
 
-- Old architecture (`newArchEnabled=false`). `react-native-google-mobile-ads`
-  is pinned to 15.8.3: 16.x dropped the old architecture and pulls Mobile Ads
-  SDK 25.x, which is compiled with Kotlin 2.3 and breaks the build.
+- New Architecture only (`newArchEnabled=true`; RN >= 0.82 has no old arch).
+  Our `SilenceModule` and `react-native-linear-gradient` 2.8.3 are legacy-style
+  and run through RN's interop layer. `react-native-google-mobile-ads` is
+  17.2.0 (needs RN >= 0.86).
+- `gradle.properties` carries the template's AGP 9 flags
+  (`android.builtInKotlin=false`, `android.newDsl=false`).
+- R8 is on for release. `proguard-rules.pro` keeps our bridge module and
+  WorkManager's Room database (`WorkDatabase_Impl`) - without the latter the
+  app crashes at startup.
+- RN 0.88 API changes already applied: `StyleSheet.absoluteFill` (no
+  `absoluteFillObject`), refs typed `ComponentRef<typeof View>`, `MainApplication`
+  passes packages to `getDefaultReactHost` (no `ReactNativeHost`).
 - RN 0.75+ autolinking: `autolinkLibrariesFromCommand()` in `settings.gradle`
   and `autolinkLibrariesWithApp()` in `app/build.gradle`. The old
   `native_modules.gradle` no longer exists.

@@ -5,31 +5,21 @@ import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
-import com.facebook.react.ReactNativeHost
-import com.facebook.react.ReactPackage
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
-import com.facebook.react.defaults.DefaultReactNativeHost
 import com.mps.gosilent.nativemodules.SilencePackage
 
 class MainApplication : Application(), ReactApplication {
 
-    override val reactNativeHost: ReactNativeHost =
-        object : DefaultReactNativeHost(this) {
-            override fun getPackages(): List<ReactPackage> =
+    override val reactHost: ReactHost by lazy {
+        getDefaultReactHost(
+            context = applicationContext,
+            packageList =
                 PackageList(this).packages.apply {
+                    // Our own native module isn't in node_modules, so it isn't autolinked.
                     add(SilencePackage())
-                }
-
-            override fun getJSMainModuleName(): String = "index"
-
-            override fun getUseDeveloperSupport(): Boolean = BuildConfig.DEBUG
-
-            override val isNewArchEnabled: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
-            override val isHermesEnabled: Boolean = BuildConfig.IS_HERMES_ENABLED
-        }
-
-    override val reactHost: ReactHost
-        get() = getDefaultReactHost(applicationContext, reactNativeHost)
+                },
+        )
+    }
 
     override fun onCreate() {
         super.onCreate()

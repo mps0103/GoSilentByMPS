@@ -111,6 +111,9 @@ export function requestNotificationPermission(): Promise<void> {
 
 /** Subscribe to tick/finished/cancelled events. Returns an unsubscribe function. */
 export function subscribe(callback: (event: SilenceEvent) => void): () => void {
-  const sub = emitter.addListener('SilenceTimerEvent', callback);
+  // The native side always sends a SilenceEvent-shaped map.
+  const sub = emitter.addListener('SilenceTimerEvent', event =>
+    callback(event as unknown as SilenceEvent),
+  );
   return () => sub.remove();
 }

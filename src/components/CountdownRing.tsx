@@ -92,9 +92,9 @@ export default function CountdownRing({
 
   const waveRing = (offset: number) => {
     // Two rings sharing one clock, half a cycle apart.
-    const v =
+    const v: Animated.AnimatedInterpolation<number> =
       offset === 0
-        ? wave
+        ? wave.interpolate({inputRange: [0, 1], outputRange: [0, 1]})
         : wave.interpolate({
             inputRange: [0, 1 - offset, 1 - offset + 0.0001, 1],
             outputRange: [offset, 1, 0, offset],
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   spark: {position: 'absolute', width: 10, height: 10, borderRadius: 5},
   sparkGlow: {position: 'absolute', width: 22, height: 22, borderRadius: 11, opacity: 0.25},
   centerContent: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
   },

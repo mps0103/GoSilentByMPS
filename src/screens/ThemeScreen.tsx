@@ -93,7 +93,7 @@ function ThemeCard({item, selected, onPress}: {item: Theme; selected: boolean; o
             colors={item.gradient}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
           />
         </View>
         <Text style={[styles.cardName, {color: c.textHi}]}>{item.name.toUpperCase()}</Text>

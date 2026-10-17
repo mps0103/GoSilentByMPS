@@ -91,7 +91,7 @@ export default function GlowButton({label, onPress, disabled, style, height = 62
         {!disabled && (
           <LinearGradient
             colors={theme.gradient}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
           />
@@ -117,7 +117,7 @@ export default function GlowButton({label, onPress, disabled, style, height = 62
               colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.45)', 'rgba(255,255,255,0)']}
               start={{x: 0, y: 0.5}}
               end={{x: 1, y: 0.5}}
-              style={StyleSheet.absoluteFillObject}
+              style={StyleSheet.absoluteFill}
             />
           </Animated.View>
         )}

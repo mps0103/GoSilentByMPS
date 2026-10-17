@@ -137,11 +137,9 @@ function AppShell() {
 
   return (
     <View style={[styles.root, {backgroundColor: theme.colors.bg}]}>
-      <StatusBar
-        barStyle={theme.dark ? 'light-content' : 'dark-content'}
-        translucent
-        backgroundColor="transparent"
-      />
+      {/* Edge-to-edge: bars are transparent; only the icon colour is set.
+          backgroundColor/translucent would call setters deprecated in Android 15. */}
+      <StatusBar barStyle={theme.dark ? 'light-content' : 'dark-content'} />
       {/* Background art runs edge to edge, behind the system bars... */}
       <ParticleBackground />
       {/* ...while the content stays clear of them. */}

@@ -1,0 +1,1 @@
+D:\ClaudeAiProjrcts\go-silent-rn\go-silent-rn\android\app\build\intermediates\cxx\RelWithDebInfo\3t5r3y5j\obj\arm64-v8a

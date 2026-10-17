@@ -23,6 +23,20 @@ object LauncherIcon {
     fun savedTheme(context: Context): String? =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_THEME, null)
 
+    /**
+     * Deep accent of the chosen theme (`accentDeep` in src/theme.ts) - used as
+     * the colorized notification background. The bright accent is too light:
+     * OEMs draw the action button as a lighter tint of the background, which
+     * vanishes on yellow/pink.
+     */
+    fun notificationColor(context: Context): Int = when (savedTheme(context)) {
+        "ocean" -> 0xFF6366F1.toInt()
+        "forest" -> 0xFF0D9488.toInt()
+        "rose" -> 0xFFC026D3.toInt()
+        "aurora" -> 0xFFEC4899.toInt()
+        else -> 0xFFEA580C.toInt() // ember, daylight
+    }
+
     fun sync(context: Context) {
         val wanted = savedTheme(context)?.takeIf { it in THEMES } ?: DEFAULT
         val pm = context.packageManager

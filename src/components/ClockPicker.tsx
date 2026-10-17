@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {ComponentRef, useEffect, useMemo, useRef, useState} from 'react';
 import {
   Animated,
   PanResponder,
@@ -25,11 +25,15 @@ interface Props {
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
+// Touches starting inside this fraction of the number-ring radius may still
+// become a page swipe; outside it (on the numbers) they pick immediately.
+const INNER = 0.6;
+
 /**
  * Analog time picker: tap or drag on the dial to pick the hour, it then flips
  * to minutes on its own. Tap the digits at the top to switch back.
  */
-export default function ClockPicker({hour, minute, onChange, size}: Props) {
+function ClockPicker({hour, minute, onChange, size}: Props) {
   const {theme} = useTheme();
   const c = theme.colors;
   const styles = useThemedStyles(makeStyles);
@@ -86,10 +90,14 @@ export default function ClockPicker({hour, minute, onChange, size}: Props) {
   }, [stage, stageAnim]);
 
   // ---- touch handling ----
-  const faceRef = useRef<View>(null);
+  const faceRef = useRef<ComponentRef<typeof View>>(null);
   const origin = useRef({x: 0, y: 0});
   const measured = useRef(false);
   const flipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Where the touch went down (dial coordinates) and whether it has turned
+  // into picking a time - see onPanResponderTerminationRequest.
+  const start = useRef({x: 0, y: 0});
+  const committed = useRef(false);
 
   const pan = useMemo(() => {
     const handle = (x: number, y: number) => {
@@ -117,35 +125,59 @@ export default function ClockPicker({hour, minute, onChange, size}: Props) {
     return PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
-      onPanResponderTerminationRequest: () => false,
+      // Until the touch commits to picking a time, the page swipe may take
+      // it over (see the pager in HomeScreen); after that the dial keeps it.
+      onPanResponderTerminationRequest: () => !committed.current,
       // locationX/Y can be reported relative to an inner (rotated) view on
       // Android, so work in screen coordinates against the dial's own origin.
       onPanResponderGrant: e => {
         if (flipTimer.current) clearTimeout(flipTimer.current);
         dragging.current = true;
+        committed.current = false;
         const {pageX, pageY} = e.nativeEvent;
         measured.current = false;
         faceRef.current?.measure((_x, _y, _w, _h, px, py) => {
           origin.current = {x: px, y: py};
           measured.current = true;
-          handle(pageX - px, pageY - py);
+          const x = pageX - px;
+          const y = pageY - py;
+          start.current = {x, y};
+          // On the number ring: pick at once, so dragging the hand feels
+          // immediate. In the middle: wait - it may be a page swipe.
+          if (Math.hypot(x - size / 2, y - size / 2) >= INNER * radius) {
+            committed.current = true;
+            handle(x, y);
+          }
         });
       },
       onPanResponderMove: e => {
         if (!measured.current) return;
-        handle(e.nativeEvent.pageX - origin.current.x, e.nativeEvent.pageY - origin.current.y);
+        const x = e.nativeEvent.pageX - origin.current.x;
+        const y = e.nativeEvent.pageY - origin.current.y;
+        // Moved past the pager's swipe threshold without being claimed as a
+        // horizontal swipe - so it's a drag on the dial.
+        if (!committed.current && Math.hypot(x - start.current.x, y - start.current.y) > 14) {
+          committed.current = true;
+        }
+        if (committed.current) handle(x, y);
       },
       onPanResponderRelease: () => {
         dragging.current = false;
+        // A tap in the middle of the dial still picks that position.
+        if (!committed.current && measured.current) {
+          committed.current = true;
+          handle(start.current.x, start.current.y);
+        }
         if (live.current.stage === 'hour') {
           flipTimer.current = setTimeout(() => setStage('minute'), 280);
         }
       },
       onPanResponderTerminate: () => {
+        // Handed to the page swipe: nothing was picked.
         dragging.current = false;
       },
     });
-  }, [size]);
+  }, [size, radius]);
 
   useEffect(() => () => {
     if (flipTimer.current) clearTimeout(flipTimer.current);
@@ -324,3 +356,6 @@ const makeStyles = (t: Theme) => {
     },
   });
 };
+
+// Memoised: 60 tick marks + labels are not worth redrawing on page change.
+export default React.memo(ClockPicker);

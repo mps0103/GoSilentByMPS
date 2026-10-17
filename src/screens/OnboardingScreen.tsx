@@ -173,7 +173,7 @@ export default function OnboardingScreen({onContinue}: Props) {
         {allGranted ? (
           <LinearGradient
             colors={theme.gradient}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             start={{x: 0, y: 0}}
             end={{x: 1, y: 1}}
           />

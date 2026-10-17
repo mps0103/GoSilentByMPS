@@ -21,7 +21,7 @@ interface Props {
   label: string;
 }
 
-export default function DialPicker({value, onChange, max, label}: Props) {
+function DialPicker({value, onChange, max, label}: Props) {
   const styles = useThemedStyles(makeStyles);
   const listRef = useRef<FlatList<number>>(null);
   const data = Array.from({length: max + 1}, (_, i) => i);
@@ -157,3 +157,6 @@ const makeStyles = (t: Theme) => {
     itemTextInactive: {color: c.textLo},
   });
 };
+
+// Memoised: the pager re-renders on page change; the wheels needn't.
+export default React.memo(DialPicker);

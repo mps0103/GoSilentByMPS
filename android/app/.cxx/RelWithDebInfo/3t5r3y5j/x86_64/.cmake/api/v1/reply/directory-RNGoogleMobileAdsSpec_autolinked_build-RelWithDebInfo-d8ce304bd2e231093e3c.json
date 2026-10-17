@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "RNGoogleMobileAdsSpec_autolinked_build",
+		"source" : "D:/ClaudeAiProjrcts/go-silent-rn/go-silent-rn/node_modules/react-native-google-mobile-ads/android/generated/jni"
+	}
+}

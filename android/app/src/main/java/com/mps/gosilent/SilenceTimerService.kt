@@ -6,10 +6,13 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.graphics.Typeface
 import android.media.AudioManager
 import android.os.Build
 import android.os.CountDownTimer
 import android.os.IBinder
+import android.text.SpannableString
+import android.text.style.StyleSpan
 import androidx.core.app.NotificationCompat
 
 class SilenceTimerService : Service() {
@@ -288,6 +291,14 @@ class SilenceTimerService : Service() {
         val totalSecs = (totalDurationMs / 1000L).coerceAtLeast(1L).toInt()
         val elapsedSecs = (totalSecs - remainingSeconds.toInt()).coerceAtLeast(0)
 
+        // Read every rebuild (each tick), so a theme change mid-session shows
+        // up within a second. SharedPreferences are cached in memory.
+        val accent = LauncherIcon.notificationColor(this)
+
+        val stopLabel = SpannableString("STOP").apply {
+            setSpan(StyleSpan(Typeface.BOLD), 0, length, 0)
+        }
+
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notif_bell)
             .setContentTitle("Go Silent · $modeLabel")
@@ -295,11 +306,11 @@ class SilenceTimerService : Service() {
             .setOnlyAlertOnce(true)
             .setShowWhen(false)
             .setContentIntent(openPi)
-            .addAction(0, "Stop", cancelPi)
+            .addAction(0, stopLabel, cancelPi)
             .setProgress(totalSecs, elapsedSecs, false)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setCategory(NotificationCompat.CATEGORY_PROGRESS)
-            .setColor(0xFFFBBF24.toInt())
+            .setColor(accent)
             .setColorized(true)
 
         builder.setContentText("$timeText remaining")

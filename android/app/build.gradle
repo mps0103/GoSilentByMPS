@@ -7,7 +7,8 @@ react {
     autolinkLibrariesWithApp()
 }
 
-def enableProguardInReleaseBuilds = false
+// R8 shrinking + obfuscation: Play flags DEX optimization below 25%.
+def enableProguardInReleaseBuilds = true
 
 def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
@@ -25,8 +26,8 @@ android {
         applicationId "com.mps.gosilent"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 3
-        versionName "1.1.0"
+        versionCode 5
+        versionName "1.1.2"
     }
 
     signingConfigs {
@@ -44,7 +45,7 @@ android {
         release {
             signingConfig keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
 }
